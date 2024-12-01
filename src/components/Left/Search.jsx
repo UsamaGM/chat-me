@@ -6,7 +6,7 @@ function Search() {
     <div className="flex justify-between items-center px-2 py-6 gap-3 border-b-2 border-b-white/25 w-full h-10">
       <FontAwesomeIcon icon={faSearch} />
       <input
-        className="w-full bg-green-500/25 px-2 py-1 rounded-lg backdrop-blur-md outline-none"
+        className="w-full bg-white/25 px-2 py-1 rounded-lg backdrop-blur-md outline-none"
         type="text"
         name="search"
         id="search"

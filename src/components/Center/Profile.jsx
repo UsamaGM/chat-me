@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faPhone, faVideo, faBars } from "@fortawesome/free-solid-svg-icons";
 
 function Profile() {
   return (
@@ -12,6 +12,14 @@ function Profile() {
       <span className="text-lg font-medium flex-1 overflow-hidden select-none max-h-6">
         Usama Mangi
       </span>
+      <FontAwesomeIcon
+        icon={faPhone}
+        className="hover:text-black/50 hover:cursor-pointer"
+      />
+      <FontAwesomeIcon
+        icon={faVideo}
+        className="hover:text-black/50 hover:cursor-pointer"
+      />
       <FontAwesomeIcon
         icon={faBars}
         className="hover:text-black/50 hover:cursor-pointer"
