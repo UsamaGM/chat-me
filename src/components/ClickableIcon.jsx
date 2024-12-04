@@ -13,7 +13,7 @@ function ClickableIcon({ icon, className, onClick = () => {} }) {
 
 ClickableIcon.propTypes = {
   icon: PropTypes.object,
-  className: PropTypes.object,
+  className: PropTypes.string,
   onClick: PropTypes.func,
 };
 
