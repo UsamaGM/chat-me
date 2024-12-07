@@ -13,6 +13,7 @@ body {
   justify-content: center;
   align-items: center;
   font-family: Arial, Helvetica, sans-serif;
+  scroll-behavior: smooth;
 }
 
 ::-webkit-scrollbar {

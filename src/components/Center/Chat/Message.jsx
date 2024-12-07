@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-function Message({ message = "Hello", time = "12:00", isSameUser }) {
+function Message({ message = { text: "", time: "" }, isSameUser }) {
   return (
     <div
       className={`${
@@ -10,9 +10,12 @@ function Message({ message = "Hello", time = "12:00", isSameUser }) {
       }`}
       style={{ maxWidth: "80%" }}
     >
-      <p className="text-sm text-justify">{message}</p>
-      <p className="text-gray-300 text-end" style={{ fontSize: "xx-small" }}>
-        {time}
+      <p className="text-sm font-medium text-justify">{message.text}</p>
+      <p
+        className="text-gray-700 font-semibold text-end select-none"
+        style={{ fontSize: "x-small" }}
+      >
+        {message.time.split(" ")[1]}
       </p>
     </div>
   );

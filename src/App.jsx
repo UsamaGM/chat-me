@@ -6,18 +6,18 @@ import Right from "./components/Right/Right";
 
 function App() {
   const user = {
-    id: "1",
+    id: 1,
     name: "Usama Mangi",
     email: "usamamangi.fl@gmail.com",
     image: "/profile.jpg",
   };
 
-  const [currentChat, setCurrentChat] = useState(null);
+  const [currentChat, setCurrentChat] = useState(1);
 
   return (
     <>
       <div
-        className="flex justify-between rounded-xl border-white/25 border-2 m-auto bg-green-400/15 backdrop-blur-2xl"
+        className="flex justify-between rounded-xl border-white/25 border-2 m-auto bg-green-400/15 text-black backdrop-blur-2xl"
         style={{ width: "90vw", height: "90vh" }}
       >
         <Left user={user} setCurrentChat={(userId) => setCurrentChat(userId)} />

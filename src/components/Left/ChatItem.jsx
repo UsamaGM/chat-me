@@ -14,7 +14,7 @@ function ChatItem({ user, onClick }) {
 
   return (
     <div
-      className="flex justify-between items-center p-1 gap-2 select-none rounded-md transition-transform duration-200 hover:cursor-pointer hover:bg-white/20 hover:text-black/75"
+      className="flex justify-between items-center p-2 gap-2 select-none rounded-md transition-transform duration-200 hover:cursor-pointer hover:scale-105 hover:bg-black/20 hover:text-white/75"
       onClick={onClick}
     >
       <img

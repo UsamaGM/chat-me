@@ -63,7 +63,7 @@ function Left({ user, setCurrentChat }) {
   const { name, image } = user;
 
   return (
-    <div className="flex flex-col flex-1 pt-1 text-white border-r-2 border-r-white/25 items-center justify-center select-none">
+    <div className="flex flex-col flex-1 pt-1 border-r-2 border-r-white/25 items-center justify-center select-none">
       <div className="flex flex-wrap justify-between items-center gap-3 px-2 py-1 border-b-2 border-b-white/25 w-full h-fit">
         <img
           className="w-10 h-10 rounded-md object-center bg-clip-border"
