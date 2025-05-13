@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs", // Use CommonJS module system
+    "outDir": "./dist", // Output compiled JavaScript to 'dist' directory
+    "rootDir": "./", // Root directory of your TypeScript files
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node" // Node module resolution strategy
+  },
+  "include": [
+    "./**/*.ts" // Include all .ts files in the project
+  ],
+  "exclude": [
+    "node_modules" // Exclude node_modules
+  ]
+}
