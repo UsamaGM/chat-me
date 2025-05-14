@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+.google-g {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.google-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: google-animation 2s infinite;
+}
+
+.dot-blue {
+  background-color: #4285f4;
+  left: 0;
+  animation-delay: 0s;
+}
+
+.dot-red {
+  background-color: #ea4335;
+  left: 12px;
+  animation-delay: 0.1s;
+}
+
+.dot-yellow {
+  background-color: #fbbc05;
+  left: 24px;
+  animation-delay: 0.2s;
+}
+
+.dot-green {
+  background-color: #34a853;
+  left: 36px;
+  animation-delay: 0.3s;
+}
+
+@keyframes google-animation {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-12px) scale(1.2);
+  }
+  40% {
+    transform: translateY(0) scale(1);
+  }
+  60% {
+    transform: translateY(12px) scale(0.8);
+  }
+  80% {
+    transform: translateY(0) scale(1);
+  }
+}
