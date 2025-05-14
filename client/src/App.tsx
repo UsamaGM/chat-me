@@ -1,30 +1,12 @@
-import { RouterProvider } from "react-router-dom";
-import { createBrowserRouter } from "react-router-dom";
-import { createRoutesFromElements, Route } from "react-router-dom";
-import Homepage from "./pages/Homepage";
-import ChatPage from "./pages/ChatPage";
-import Loader from "./components/Loader";
+import { BrowserRouter } from "react-router-dom";
+import AppRouter from "./routes/AppRouter";
 
 function App() {
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <>
-        <Route
-          path="/"
-          element={<Homepage />}
-          loader={() => new Promise((resolve) => setTimeout(resolve, 5000))}
-          hydrateFallbackElement={<Loader />}
-        />
-        <Route
-          path="/chats"
-          element={<ChatPage />}
-          loader={() => new Promise((resolve) => setTimeout(resolve, 2000))}
-          hydrateFallbackElement={<Loader />}
-        />
-      </>
-    )
+  return (
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <AppRouter />
+    </BrowserRouter>
   );
-  return <RouterProvider router={router} />;
 }
 
 export default App;
