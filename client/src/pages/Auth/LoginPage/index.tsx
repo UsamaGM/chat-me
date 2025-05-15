@@ -5,10 +5,13 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TextInput, PasswordInput } from "@/components";
+import { useAuth } from "@/hooks/useAuth";
 
 function LoginPage() {
+  const { login } = useAuth();
+
   const loginFormSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters long"),
@@ -28,16 +31,24 @@ function LoginPage() {
     },
   });
 
-  const onSubmit = (data: loginFormData) => {
-    console.log(data);
-  };
+  const navigate = useNavigate();
+
+  function onSubmit(data: loginFormData) {
+    login(data.email, data.password)
+      .then(() => {
+        navigate("/home");
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+      });
+  }
 
   return (
     <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-white to-50%">
       <div className="flex flex-col bg-white/20 backdrop-blur-xs rounded-4xl border border-gray-300 drop-shadow-md max-w-2xl w-fit h-fit p-6 my-6">
         <div>
-          <div className="flex justify-center items-center p-6">
-            <ArrowRightEndOnRectangleIcon className="bg-white/70 backdrop-blur-sm border border-gray-200 drop-shadow-lg rounded-3xl p-4 h-18 w-18 text-gray-900" />
+          <div className="flex justify-center items-center p-2 w-18 h-18 mx-auto mb-4 shadow bg-white/25 rounded-3xl">
+            <ArrowRightEndOnRectangleIcon className="text-gray-700" />
           </div>
           <h1 className="text-center text-2xl font-semibold mb-4">
             Sign in with email
@@ -54,7 +65,10 @@ function LoginPage() {
               error={errors.email?.message}
               {...register("email")}
             />
-            <PasswordInput error={errors.password?.message} />
+            <PasswordInput
+              error={errors.password?.message}
+              {...register("password")}
+            />
             <Link to="/forgot-password" className="place-self-end -mt-2">
               Forgot Password?
             </Link>

@@ -5,13 +5,19 @@ import LoginPage from "../pages/Auth/LoginPage";
 import Homepage from "../pages/Homepage";
 import ChatPage from "../pages/ChatPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
+import { useAuth } from "@/hooks/useAuth";
 
 function SuspenseWrapper({ children }: { children?: ReactNode }) {
   return <Suspense fallback={<Loader size="large" />}>{children}</Suspense>;
 }
 
 function AuthWrapper({ children }: { children?: ReactNode }) {
-  const isAuthenticated = false; // TODO:Replace with actual authentication logic
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated === null) {
+    return <Loader size="large" />;
+  }
+
   return isAuthenticated ? <>{children}</> : <AuthRoutes />;
 }
 
@@ -30,7 +36,6 @@ function AppRouter() {
     <SuspenseWrapper>
       <AuthWrapper>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<Homepage />} />
           <Route path="/chats" element={<ChatPage />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
