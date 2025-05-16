@@ -12,6 +12,8 @@
   "dependencies": {
     "@types/bcrypt": "latest",
     "bcrypt": "^5.1.0",
+    "colors": "^1.4.0",
+    "colors.ts": "^1.0.20",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongoose": "^7.5.0",
