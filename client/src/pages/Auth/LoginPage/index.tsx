@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { TextInput, PasswordInput } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
+import { toast, ToastContainer } from "react-toast";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -39,12 +40,16 @@ function LoginPage() {
         navigate("/home");
       })
       .catch((error) => {
-        console.error("Login failed:", error);
+        toast.error(`Login failed: ${error.message}`, {
+          backgroundColor: "#FA7755",
+          color: "#fff",
+        });
       });
   }
 
   return (
     <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-white to-50%">
+      <ToastContainer position="top-right" />
       <div className="flex flex-col bg-white/20 backdrop-blur-xs rounded-4xl border border-gray-300 drop-shadow-md max-w-2xl w-fit h-fit p-6 my-6">
         <div>
           <div className="flex justify-center items-center p-2 w-18 h-18 mx-auto mb-4 shadow bg-white/25 rounded-3xl">
