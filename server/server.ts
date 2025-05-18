@@ -1,8 +1,8 @@
-import express from "express";
-import cors from "cors";
-import { configDotenv } from "dotenv";
-import { connectDB } from "./config/db";
 import "colors";
+import cors from "cors";
+import { connectDB } from "./config/db";
+import { configDotenv } from "dotenv";
+import express from "express";
 import userRouter from "./routers/userRouter";
 
 configDotenv();

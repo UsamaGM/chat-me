@@ -1,6 +1,6 @@
+import generateToken from "../config/generateToken";
 import { Request, Response } from "express";
 import User, { UserType } from "../models/User";
-import generateToken from "../config/generateToken";
 
 async function registerUser(req: Request, res: Response) {
   const { name, email, password, pic } = req.body;
@@ -52,4 +52,20 @@ async function loginUser(req: Request, res: Response) {
   }
 }
 
-export { registerUser, loginUser };
+async function searchUsers(req: any, res: Response) {
+  const { search } = req.query;
+  const query = search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }
+    : {};
+  console.log(req.user);
+  const users = await User.find(query).find({ _id: { $ne: req.user._id } });
+
+  res.send(users);
+}
+
+export { registerUser, loginUser, searchUsers };

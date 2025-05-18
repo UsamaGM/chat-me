@@ -8,7 +8,7 @@ import {
 import image from "@/assets/background.png";
 import { useRef, useState } from "react";
 
-const messages = [
+const chats = [
   { sender: "John Doe", lastMessage: "Hello!" },
   { sender: "John Doe", lastMessage: "Hello!" },
   { sender: "John Doe", lastMessage: "Hello!" },
@@ -52,7 +52,7 @@ function Homepage() {
       className="flex flex-col items-center justify-center w-screen h-screen bg-cover bg-no-repeat"
       style={{ backgroundImage: `url(${image})` }}
     >
-      <div className="flex bg-white/40 backdrop-blur-xl shadow rounded-3xl overflow-hidden max-w-7xl w-full h-full m-10">
+      <div className="flex bg-white/40 backdrop-blur-lg shadow rounded-3xl overflow-hidden max-w-7xl w-full h-full m-6">
         <div className="flex flex-col flex-1/3 p-6">
           <div className="flex justify-between items-center">
             <div className="flex justify-start items-center gap-4">
@@ -69,7 +69,7 @@ function Homepage() {
             </div>
           </div>
           <div className="flex flex-col mt-10 overflow-auto space-y-2 pr-2">
-            {messages.map((message, index) => (
+            {chats.map((message, index) => (
               <div
                 key={index}
                 className="bg-white/50 rounded-3xl flex justify-between items-center p-4"

@@ -2,7 +2,9 @@ import { useState } from "react";
 import AuthContext from "./AuthContext";
 import api from "@/config/api";
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    !!localStorage.getItem("authToken")
+  );
 
   async function login(email: string, password: string) {
     try {

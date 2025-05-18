@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { TextInput, PasswordInput } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { toast, ToastContainer } from "react-toast";
+import { AxiosError } from "axios";
 
 function LoginPage() {
   const { login } = useAuth();
@@ -34,17 +35,18 @@ function LoginPage() {
 
   const navigate = useNavigate();
 
-  function onSubmit(data: loginFormData) {
-    login(data.email, data.password)
-      .then(() => {
-        navigate("/home");
-      })
-      .catch((error) => {
-        toast.error(`Login failed: ${error.message}`, {
+  async function onSubmit(data: loginFormData) {
+    try {
+      await login(data.email, data.password);
+      navigate("/home");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast.error(`Login failed: ${error.response?.data.message}`, {
           backgroundColor: "#FA7755",
           color: "#fff",
         });
-      });
+      }
+    }
   }
 
   return (
