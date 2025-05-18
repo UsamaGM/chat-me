@@ -28,7 +28,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   async function fetchUserData() {
     try {
       setLoading(true);
-      const response = await api.get("/api/user/profile");
+      const response = await api.get("/user/profile");
       setUser(response.data);
       return { success: true, message: "Fetched data successfully" };
     } catch (error) {
@@ -46,7 +46,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   ) {
     try {
       setLoading(true);
-      await api.post("/api/user/register", {
+      await api.post("/user/register", {
         name,
         email,
         password,
@@ -64,7 +64,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, password: string) {
     try {
       setLoading(true);
-      const response = await api.post("/api/user/login", {
+      const response = await api.post("/user/login", {
         email,
         password,
       });

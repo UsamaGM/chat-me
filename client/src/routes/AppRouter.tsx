@@ -6,6 +6,7 @@ import Homepage from "../pages/Homepage";
 import ChatPage from "../pages/ChatPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import { useAuth } from "@/hooks/useAuth";
+import api from "@/config/api";
 
 function SuspenseWrapper({ children }: { children?: ReactNode }) {
   return <Suspense fallback={<Loader size="large" />}>{children}</Suspense>;
@@ -36,7 +37,14 @@ function AppRouter() {
     <SuspenseWrapper>
       <AuthWrapper>
         <Routes>
-          <Route path="/home" element={<Homepage />} />
+          <Route
+            path="/home"
+            element={<Homepage />}
+            loader={async () => {
+              await api.get("/chat");
+            }}
+            hydrateFallbackElement={<Loader size="large" />}
+          />
           <Route path="/chats" element={<ChatPage />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>

@@ -7,8 +7,8 @@ function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
-        <ToastContainer position="top-right" />
         <AppRouter />
+        <ToastContainer position="top-right" />
       </AuthProvider>
     </BrowserRouter>
   );

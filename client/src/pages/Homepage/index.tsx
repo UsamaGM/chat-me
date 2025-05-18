@@ -6,21 +6,13 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import image from "@/assets/background.png";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader } from "@/components";
-
-const chats = [
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-  { sender: "John Doe", lastMessage: "Hello!" },
-];
+import api from "@/config/api";
+import { toast } from "react-toast";
+import errorHandler from "@/config/errorHandler";
+import ChatList from "./ChatList";
 
 const chatMessages = [
   { sender: "John Doe", message: "Hey John!", time: "12:00 PM" },
@@ -46,9 +38,29 @@ const chatMessages = [
 ];
 
 function Homepage() {
-  const { loading, user, logout } = useAuth();
+  const { user, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [chats, setChats] = useState([]);
   const [chat, setChat] = useState(chatMessages);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchChats();
+  }, []);
+
+  async function fetchChats() {
+    try {
+      const {
+        data: { chats },
+      } = await api.get("/chat");
+
+      setChats(chats);
+    } catch (error) {
+      toast.error(errorHandler(error));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (loading) return <Loader size="large" />;
 
@@ -58,12 +70,13 @@ function Homepage() {
       style={{ backgroundImage: `url(${image})` }}
     >
       <div className="flex bg-white/40 backdrop-blur-lg shadow rounded-3xl overflow-hidden max-w-7xl w-full h-full m-6">
+        {/* Chat List Side */}
         <div className="flex flex-col flex-1/3 p-6">
+          {/* User Name with Email */}
           <div className="flex justify-between items-center">
             <div className="flex justify-start items-center gap-4">
-              {/* <UserCircleIcon className="w-12 h-12 text-blue-500" /> */}
               <img
-                src={user?.pic || "https://via.placeholder.com/150"}
+                src={user?.pic}
                 alt="User"
                 className="w-12 h-12 rounded-full bg-cover bg-center"
               />
@@ -80,23 +93,14 @@ function Homepage() {
               <BellIcon className="w-6 h-6 text-gray-600 hover:animate-ring-bell" />
             </div>
           </div>
+
+          {/* Chats List */}
           <div className="flex flex-col mt-10 overflow-auto space-y-2 pr-2">
-            {chats.map((message, index) => (
-              <div
-                key={index}
-                className="bg-white/50 rounded-3xl flex justify-between items-center p-4"
-              >
-                <div className="flex flex-col">
-                  <h1 className="text-lg font-semibold text-gray-800">
-                    {message.sender}
-                  </h1>
-                  <p className="text-sm text-gray-600">{message.lastMessage}</p>
-                </div>
-                <p className="text-sm text-gray-500">12:00 PM</p>
-              </div>
-            ))}
+            <ChatList chatList={chats} />
           </div>
         </div>
+
+        {/* Chat Side */}
         <div className="flex flex-col flex-2/3 bg-white/30 rounded-3xl">
           <div className="flex justify-between items-center p-6">
             <div className="flex items-center justify-between gap-4">
@@ -114,7 +118,7 @@ function Homepage() {
               </button>
             </div>
           </div>
-          <div className="flex flex-col flex-1 p-6 overflow-auto space-y-2">
+          <div className="flex flex-col grow p-6 overflow-y-auto space-y-2">
             {chat.map((message, index) => (
               <div
                 key={index}
@@ -154,6 +158,7 @@ function Homepage() {
                       { sender: "John Cloe", message, time: "12:05 PM" },
                     ]);
                     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
                     (e.target as HTMLInputElement).value = "";
                   }
                 }
