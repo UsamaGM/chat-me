@@ -5,14 +5,13 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
-import { TextInput, PasswordInput } from "@/components";
+import { Link } from "react-router-dom";
+import { TextInput, PasswordInput, Loader } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
-import { toast, ToastContainer } from "react-toast";
-import { AxiosError } from "axios";
+import { toast } from "react-toast";
 
 function LoginPage() {
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
   const loginFormSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -33,25 +32,23 @@ function LoginPage() {
     },
   });
 
-  const navigate = useNavigate();
-
   async function onSubmit(data: loginFormData) {
-    try {
-      await login(data.email, data.password);
-      navigate("/home");
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        toast.error(`Login failed: ${error.response?.data.message}`, {
-          backgroundColor: "#FA7755",
-          color: "#fff",
-        });
-      }
+    if (loading) return;
+    const { success, message } = await login(data.email, data.password);
+
+    if (success) {
+      toast.success(message);
+      toast.info("Redirecting to home page...");
+      setTimeout(() => {
+        toast.hideAll();
+      }, 2000);
+    } else {
+      toast.error(message);
     }
   }
 
   return (
     <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-white to-50%">
-      <ToastContainer position="top-right" />
       <div className="flex flex-col bg-white/20 backdrop-blur-xs rounded-4xl border border-gray-300 drop-shadow-md max-w-2xl w-fit h-fit p-6 my-6">
         <div>
           <div className="flex justify-center items-center p-2 w-18 h-18 mx-auto mb-4 shadow bg-white/25 rounded-3xl">
@@ -82,9 +79,13 @@ function LoginPage() {
             <div className="flex items-center justify-center bg-gray-800 w-full rounded-2xl my-4 min-w-sm hover:bg-gray-700 transition duration-300 ease-in-out">
               <button
                 type="submit"
-                className="text-gray-100 cursor-pointer w-full h-full p-3 focus:outline-none"
+                className="text-gray-100 cursor-pointer w-full h-full focus:outline-none"
               >
-                Log In
+                {loading ? (
+                  <Loader size="small" />
+                ) : (
+                  <div className="p-3">Log In</div>
+                )}
               </button>
             </div>
           </div>

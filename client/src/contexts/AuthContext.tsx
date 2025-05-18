@@ -1,8 +1,22 @@
 import { createContext } from "react";
+import type { UserType } from "./AuthProvider";
+
+type ResponseType = {
+  success: boolean;
+  message: string;
+};
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  loading: boolean;
+  user: UserType | null;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    pic?: string
+  ) => Promise<ResponseType>;
+  login: (email: string, password: string) => Promise<ResponseType>;
   logout: () => void;
 };
 

@@ -11,13 +11,11 @@ function Loader({ size = "medium" }: { size?: "small" | "medium" | "large" }) {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div className={`google-g ${getSize()}`}>
-        <div className="google-dot dot-blue"></div>
-        <div className="google-dot dot-red"></div>
-        <div className="google-dot dot-yellow"></div>
-        <div className="google-dot dot-green"></div>
-      </div>
+    <div className={`m-auto w-fit min-h-12 ${getSize()}`}>
+      <div className="google-dot dot-blue" />
+      <div className="google-dot dot-red" />
+      <div className="google-dot dot-yellow" />
+      <div className="google-dot dot-green" />
     </div>
   );
 }

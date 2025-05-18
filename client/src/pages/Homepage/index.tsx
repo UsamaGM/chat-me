@@ -7,6 +7,8 @@ import {
 } from "@heroicons/react/24/solid";
 import image from "@/assets/background.png";
 import { useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader } from "@/components";
 
 const chats = [
   { sender: "John Doe", lastMessage: "Hello!" },
@@ -44,8 +46,11 @@ const chatMessages = [
 ];
 
 function Homepage() {
+  const { loading, user, logout } = useAuth();
   const [chat, setChat] = useState(chatMessages);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  if (loading) return <Loader size="large" />;
 
   return (
     <div
@@ -56,12 +61,19 @@ function Homepage() {
         <div className="flex flex-col flex-1/3 p-6">
           <div className="flex justify-between items-center">
             <div className="flex justify-start items-center gap-4">
-              <UserCircleIcon className="w-12 h-12 text-blue-500" />
+              {/* <UserCircleIcon className="w-12 h-12 text-blue-500" /> */}
+              <img
+                src={user?.pic || "https://via.placeholder.com/150"}
+                alt="User"
+                className="w-12 h-12 rounded-full bg-cover bg-center"
+              />
               <div className="flex flex-col">
                 <h1 className="text-xl font-semibold text-gray-800">
-                  User Name
+                  {user?.name || "John Doe"}
                 </h1>
-                <p className="text-sm text-gray-600">Email</p>
+                <p className="text-sm text-gray-600">
+                  {user?.email || "Email"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -97,7 +109,9 @@ function Homepage() {
             <div className="flex items-center gap-4">
               <PhoneIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
               <ShareIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
-              <Bars3Icon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
+              <button onClick={logout}>
+                <Bars3Icon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
+              </button>
             </div>
           </div>
           <div className="flex flex-col flex-1 p-6 overflow-auto space-y-2">

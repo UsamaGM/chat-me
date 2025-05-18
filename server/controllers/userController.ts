@@ -1,6 +1,7 @@
 import generateToken from "../config/generateToken";
 import { Request, Response } from "express";
 import User, { UserType } from "../models/User";
+import { AuthRequest } from "../middlewares/authMiddleware";
 
 async function registerUser(req: Request, res: Response) {
   const { name, email, password, pic } = req.body;
@@ -10,14 +11,12 @@ async function registerUser(req: Request, res: Response) {
     return;
   }
 
-  // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     res.status(400).json({ message: "User already exists" });
     return;
   }
 
-  // Create new user
   const user = new User({
     name,
     email,
@@ -45,6 +44,7 @@ async function loginUser(req: Request, res: Response) {
 
   if (user && (await user.matchPassword(password))) {
     res.json({
+      user,
       token: generateToken(user._id),
     });
   } else {
@@ -52,7 +52,7 @@ async function loginUser(req: Request, res: Response) {
   }
 }
 
-async function searchUsers(req: any, res: Response) {
+async function searchUsers(req: AuthRequest, res: Response) {
   const { search } = req.query;
   const query = search
     ? {
@@ -63,9 +63,18 @@ async function searchUsers(req: any, res: Response) {
       }
     : {};
   console.log(req.user);
-  const users = await User.find(query).find({ _id: { $ne: req.user._id } });
+  const users = await User.find(query).find({ _id: { $ne: req.user?._id } });
 
   res.send(users);
 }
 
-export { registerUser, loginUser, searchUsers };
+async function getUserProfile(req: AuthRequest, res: Response) {
+  const user = await User.findById(req.user?._id).select("-password");
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+  res.json(user);
+}
+
+export { registerUser, loginUser, searchUsers, getUserProfile };

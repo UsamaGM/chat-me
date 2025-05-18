@@ -1,13 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { ArrowDownOnSquareIcon } from "@heroicons/react/24/outline";
 import { EnvelopeIcon, UserIcon } from "@heroicons/react/24/solid";
+import { Link, useNavigate } from "react-router-dom";
+import { TextInput, PasswordInput, Loader } from "@/components";
+import { toast } from "react-toast";
+import { useAuth } from "@hooks/useAuth";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Link } from "react-router-dom";
-import PasswordInput from "../../../components/PasswordInput";
-import TextInput from "../../../components/TextInput";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 function RegisterPage() {
+  const { register: registerUser, loading } = useAuth();
   const loginFormSchema = z
     .object({
       name: z.string().min(2, "Name is required"),
@@ -38,9 +40,22 @@ function RegisterPage() {
     },
   });
 
-  const onSubmit = (data: loginFormData) => {
-    console.log(data);
-  };
+  const navigate = useNavigate();
+
+  async function onSubmit(data: loginFormData) {
+    const { name, email, password } = data;
+    const { success, message } = await registerUser(name, email, password);
+
+    if (success) {
+      toast.success(message);
+      setTimeout(() => {
+        toast.hideAll();
+        navigate("/login");
+      }, 2000);
+    } else {
+      toast.error(message);
+    }
+  }
 
   return (
     <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-white to-50%">
@@ -83,9 +98,13 @@ function RegisterPage() {
             <div className="flex items-center justify-center bg-gray-800 w-full rounded-2xl my-4 min-w-sm hover:bg-gray-700 transition duration-300 ease-in-out">
               <button
                 type="submit"
-                className="text-gray-100 cursor-pointer w-full h-full p-3 focus:outline-none"
+                className="text-gray-100 cursor-pointer w-full h-full focus:outline-none"
               >
-                Sign Up
+                {loading ? (
+                  <Loader size="small" />
+                ) : (
+                  <div className="p-3">Sign Up</div>
+                )}
               </button>
             </div>
           </div>
