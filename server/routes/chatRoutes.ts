@@ -2,6 +2,7 @@ import {
   accessChat,
   addToGroup,
   createGroupChat,
+  getChatById,
   getUserChats,
   removeFromGroup,
 } from "../controllers/chatController";
@@ -15,6 +16,7 @@ router
   .get(authMiddleware, getUserChats)
   .post(authMiddleware, accessChat);
 
+router.get("/:id", authMiddleware, getChatById);
 router.post("/group", authMiddleware, createGroupChat);
 router.put("/group-add", authMiddleware, addToGroup);
 router.put("/group-remove", authMiddleware, removeFromGroup);

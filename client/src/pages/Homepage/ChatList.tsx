@@ -1,25 +1,16 @@
-import type { UserType } from "@/contexts/AuthProvider";
+import type { ChatType } from "@/contexts/ChatContext";
+import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@hooks/useAuth";
-
-export type ChatType = {
-  _id: string;
-  chatName: string;
-  createdAt: string;
-  isGroupChat: boolean;
-  updatedAt: string;
-  users: UserType[];
-  latestMessage?: { sender: UserType };
-  groupAdmin: string;
-};
 
 function ChatList({ chatList }: { chatList: ChatType[] }) {
   const { user } = useAuth();
+  const { setSelectedChat } = useChat();
 
-  console.log(chatList);
   return chatList.map((chat) => (
     <div
       key={chat._id}
-      className="bg-white/50 rounded-3xl flex justify-between items-center p-4"
+      className="bg-white/50 rounded-3xl cursor-pointer flex justify-between items-center px-6 py-2"
+      onClick={() => setSelectedChat(chat)}
     >
       <div className="flex flex-col">
         <h1 className="text-lg font-semibold text-gray-800">

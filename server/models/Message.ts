@@ -21,6 +21,7 @@ const MessageSchema = new mongoose.Schema(
 const Message = mongoose.model("Message", MessageSchema);
 
 export default Message;
+
 export type MessageType = {
   _id: mongoose.Types.ObjectId;
   sender: mongoose.Types.ObjectId;
