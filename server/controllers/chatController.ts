@@ -74,7 +74,9 @@ async function getChatById(req: AuthRequest, res: Response) {
   const { id } = req.params;
 
   try {
-    const queriedChat = await Message.find({ chat: id }).sort({ updatedAt: 1 });
+    const queriedChat = await Message.find({ chat: id })
+      .populate("sender")
+      .sort({ updatedAt: 1 });
 
     if (!queriedChat) {
       res.status(400).json({ message: "Bad request!" });
