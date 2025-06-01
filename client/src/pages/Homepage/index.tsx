@@ -1,22 +1,14 @@
-import {
-  Bars3Icon,
-  BellIcon,
-  PhoneIcon,
-  ShareIcon,
-} from "@heroicons/react/24/solid";
+import { BellIcon } from "@heroicons/react/24/solid";
 import background from "@/assets/background.png";
-import Chat from "./Chat";
 import ChatList from "./ChatList";
-import { Loader } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
 import UsernameWithEmailAndAvatar from "./UsernameWithEmailAndAvatar";
+import { Outlet } from "react-router-dom";
 
 function Homepage() {
-  const { user, logout } = useAuth();
-  const { loading, chats, selectedChat } = useChat();
-
-  if (loading) return <Loader size="large" />;
+  const { user } = useAuth();
+  const { chats } = useChat();
 
   return (
     <div
@@ -40,34 +32,8 @@ function Homepage() {
           </div>
         </div>
 
-        {/* Chat Side */}
-        <div className="flex flex-col flex-2/3 bg-white/30 rounded-3xl">
-          {selectedChat ? (
-            <>
-              <div className="p-6">
-                <UsernameWithEmailAndAvatar
-                  user={selectedChat.users.find((u) => u._id != user?._id)!}
-                  rightIcons={
-                    <>
-                      <PhoneIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
-                      <ShareIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
-                      <button onClick={logout}>
-                        <Bars3Icon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
-                      </button>
-                    </>
-                  }
-                />
-              </div>
-
-              {/* Currently Selected Chat */}
-              <Chat />
-            </>
-          ) : (
-            <div className="flex justify-center items-center w-full h-full">
-              <p>Hello There! Select a Chat and get going!</p>
-            </div>
-          )}
-        </div>
+        {/* Selected Chat */}
+        <Outlet />
       </div>
     </div>
   );

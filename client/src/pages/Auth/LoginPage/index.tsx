@@ -5,13 +5,14 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TextInput, PasswordInput, Loader } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-toast";
 
 function LoginPage() {
   const { login, loading } = useAuth();
+  const navigate = useNavigate();
 
   const loginFormSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -41,6 +42,7 @@ function LoginPage() {
       toast.info("Redirecting to home page...");
       setTimeout(() => {
         toast.hideAll();
+        navigate("/");
       }, 2000);
     } else {
       toast.error(message);

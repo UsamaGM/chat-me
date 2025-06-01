@@ -1,51 +1,53 @@
-import { Suspense, type ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import Loader from "../components/Loader";
 import LoginPage from "../pages/Auth/LoginPage";
 import Homepage from "../pages/Homepage";
-import ChatPage from "../pages/ChatPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import { useAuth } from "@/hooks/useAuth";
 import ChatProvider from "@/contexts/ChatProvider";
-
-function SuspenseWrapper({ children }: { children?: ReactNode }) {
-  return <Suspense fallback={<Loader size="large" />}>{children}</Suspense>;
-}
-
-function AuthWrapper({ children }: { children?: ReactNode }) {
-  const { isAuthenticated } = useAuth();
-
-  if (isAuthenticated === null) {
-    return <Loader size="large" />;
-  }
-
-  return isAuthenticated ? <>{children}</> : <AuthRoutes />;
-}
-
-function AuthRoutes() {
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
-}
+import api from "@/config/api";
+import Chat from "@/pages/Homepage/Chat";
 
 function AppRouter() {
-  return (
-    <SuspenseWrapper>
-      <AuthWrapper>
+  const { isAuthenticated } = useAuth();
+
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Navigate to={isAuthenticated ? "/home" : "/login"} />,
+    },
+    {
+      path: "/home",
+      element: (
         <ChatProvider>
-          <Routes>
-            <Route path="/home" element={<Homepage />} />
-            <Route path="/chats" element={<ChatPage />} />
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Routes>
+          <Homepage />
         </ChatProvider>
-      </AuthWrapper>
-    </SuspenseWrapper>
-  );
+      ),
+      children: [
+        {
+          path: "/home/chat/:id",
+          element: <Chat />,
+          loader: async ({ params }) => {
+            return await api.get(`/chat/${params.id}`);
+          },
+          hydrateFallbackElement: <Loader size="large" />,
+        },
+      ],
+    },
+    {
+      path: "/login",
+      element: <LoginPage />,
+    },
+    {
+      path: "/register",
+      element: <RegisterPage />,
+    },
+  ]);
+  return <RouterProvider router={router} />;
 }
 
 export default AppRouter;

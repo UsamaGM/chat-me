@@ -1,16 +1,21 @@
 import type { ChatType } from "@/contexts/ChatContext";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 function ChatList({ chatList }: { chatList: ChatType[] }) {
   const { user } = useAuth();
   const { setSelectedChat } = useChat();
+  const navigate = useNavigate();
 
   return chatList.map((chat) => (
     <div
       key={chat._id}
       className="bg-white/50 rounded-3xl cursor-pointer flex justify-between items-center px-6 py-2"
-      onClick={() => setSelectedChat(chat)}
+      onClick={() => {
+        navigate(`/home/chat/${chat._id}`);
+        setSelectedChat(chat);
+      }}
     >
       <div className="flex flex-col">
         <h1 className="text-lg font-semibold text-gray-800">
@@ -20,9 +25,7 @@ function ChatList({ chatList }: { chatList: ChatType[] }) {
         </h1>
 
         <p className="text-sm text-gray-600">
-          {chat.latestMessage?.sender.name || (
-            <span className="text-blue-700 font-semibold">New Chat</span>
-          )}
+          {chat.latestMessage?.content || "New Chat"}
         </p>
       </div>
       <p className="text-sm text-gray-500">{chat.updatedAt}</p>

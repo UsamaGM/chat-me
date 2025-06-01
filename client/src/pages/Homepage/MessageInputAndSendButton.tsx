@@ -1,20 +1,14 @@
 import api from "@/config/api";
 import errorHandler from "@/config/errorHandler";
-import type { MessageType } from "@/contexts/ChatContext";
 import { useChat } from "@/hooks/useChat";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { toast } from "react-toast";
 
-interface PropTypes {
-  addMessage: (message: MessageType) => void;
-}
-
-function MessageInputAndSendButton({ addMessage }: PropTypes) {
-  const { selectedChat } = useChat();
+function MessageInputAndSendButton() {
+  const { selectedChat, socket } = useChat();
   const [chatMessage, setChatMessage] = useState("");
 
-  //TODO: Implement Messaging functionality
   async function sendMessage() {
     if (chatMessage.length) {
       try {
@@ -24,7 +18,7 @@ function MessageInputAndSendButton({ addMessage }: PropTypes) {
         });
         const { newMessage } = response.data;
 
-        addMessage(newMessage);
+        socket?.emit("message", newMessage);
 
         setChatMessage("");
       } catch (error) {
@@ -34,7 +28,7 @@ function MessageInputAndSendButton({ addMessage }: PropTypes) {
   }
 
   return (
-    <div className="flex items-center justify-between space-x-6 rounded-b-3xl">
+    <div className="flex items-center justify-between space-x-6 rounded-b-3xl my-4">
       <input
         type="text"
         placeholder="Type a message..."

@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import type { UserType } from "./AuthProvider";
+import type { Socket } from "socket.io-client";
 
 export interface ChatType {
   _id: string;
@@ -14,7 +15,7 @@ export interface ChatType {
 
 export interface MessageType {
   _id: string;
-  chat: string;
+  chat: ChatType;
   content: string;
   createdAt: string;
   sender: UserType;
@@ -22,9 +23,9 @@ export interface MessageType {
 }
 
 export interface ChatContextType {
-  loading: boolean;
   chats: ChatType[];
   selectedChat: ChatType | null;
+  socket: Socket | null;
   setSelectedChat: (chat: ChatType) => void;
 }
 

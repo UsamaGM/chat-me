@@ -3,7 +3,8 @@ import "colors";
 
 async function connectDB() {
   try {
-    const uri = process.env.MONGO_URI || "mongodb://localhost:27017/mydatabase";
+    const uri =
+      process.env.MONGO_URI || "mongodb://localhost:27017/new-chat-app";
     const conn = await mongoose.connect(uri);
 
     console.log(`MongoDB connected: ${conn.connection.host}`.green.underline);
