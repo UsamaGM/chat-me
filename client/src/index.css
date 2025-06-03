@@ -70,6 +70,44 @@
   }
 }
 
+.animate-fade-in {
+  animation: fade-in-animation 300ms forwards;
+}
+
+@keyframes fade-in-animation {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 50%;
+  }
+  100% {
+    opacity: 100%;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-animation 300ms forwards ease-in-out;
+}
+
+@keyframes slide-in-animation {
+  0% {
+    transform: translateY(50px);
+  }
+  25% {
+    transform: translateY(37.5px);
+  }
+  50% {
+    transform: translateY(25px);
+  }
+  75% {
+    transform: translateY(12.5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 ::-webkit-scrollbar {
   width: 0.4rem;
   height: 0.4rem;

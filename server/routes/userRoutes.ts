@@ -9,7 +9,7 @@ import authMiddleware from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-router.get("/", authMiddleware, searchUsers);
+router.get("/:search", authMiddleware, searchUsers);
 router.get("/profile", authMiddleware, getUserProfile);
 router.post("/register", registerUser);
 router.post("/login", loginUser);

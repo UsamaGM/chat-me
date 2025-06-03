@@ -53,7 +53,7 @@ async function loginUser(req: Request, res: Response) {
 }
 
 async function searchUsers(req: AuthRequest, res: Response) {
-  const { search } = req.query;
+  const { search } = req.params;
   const query = search
     ? {
         $or: [
@@ -65,7 +65,7 @@ async function searchUsers(req: AuthRequest, res: Response) {
   console.log(req.user);
   const users = await User.find(query).find({ _id: { $ne: req.user?._id } });
 
-  res.send(users);
+  res.json({ users });
 }
 
 async function getUserProfile(req: AuthRequest, res: Response) {

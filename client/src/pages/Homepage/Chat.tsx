@@ -9,12 +9,16 @@ import { useLoaderData } from "react-router-dom";
 import UsernameWithEmailAndAvatar from "./UsernameWithEmailAndAvatar";
 import { Bars3Icon, PhoneIcon, ShareIcon } from "@heroicons/react/24/solid";
 import type { UserType } from "@/contexts/AuthProvider";
+import { io } from "socket.io-client";
+import formatDateTime from "@/config/formatter";
 
 function Chat() {
   const { user, logout } = useAuth();
   const { selectedChat } = useChat();
 
   if (!selectedChat) return null;
+
+  console.log("Chat is redering...");
 
   return (
     <div className="flex flex-col flex-2/3 bg-white/30 rounded-3xl">
@@ -44,7 +48,6 @@ function ChatMessagesList({
   chat: ChatType;
   user: UserType | null;
 }) {
-  const { socket } = useChat();
   const response = useLoaderData();
 
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -55,23 +58,29 @@ function ChatMessagesList({
   }, [response]);
 
   useEffect(() => {
-    if (socket) {
-      socket.emit("join-chat", chat?._id);
+    const socket = io("http://localhost:3000", {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
 
-      socket.on("chat-updated", (latestMessage: MessageType) => {
-        console.log(latestMessage);
-        if (chat?._id === latestMessage.chat._id) {
-          setMessages((prevMessages) => [...prevMessages, latestMessage]);
-        }
-      });
+    socket.emit("join-chat", chat?._id);
 
-      socket.on("chat-deleted", (deletedChatId: string) => {
-        if (chat?._id === deletedChatId) {
-          setMessages([]);
-          toast.info("This chat has been deleted.");
-        }
-      });
-    }
+    socket.on("chat-updated", (latestMessage: MessageType) => {
+      console.log(latestMessage);
+      if (latestMessage.sender._id !== user?._id)
+        toast.info(`${latestMessage.sender.name}: ${latestMessage.content}`);
+
+      if (chat?._id === latestMessage.chat._id) {
+        setMessages((prevMessages) => [...prevMessages, latestMessage]);
+      }
+    });
+
+    socket.on("chat-deleted", (deletedChatId: string) => {
+      if (chat?._id === deletedChatId) {
+        setMessages([]);
+        toast.info("This chat has been deleted.");
+      }
+    });
 
     return () => {
       if (socket) {
@@ -79,7 +88,7 @@ function ChatMessagesList({
         socket.off();
       }
     };
-  }, [socket, chat]);
+  }, [chat, user]);
 
   return (
     <div className="flex flex-col h-full overflow-hidden px-6">
@@ -87,6 +96,7 @@ function ChatMessagesList({
         {messages.length ? (
           messages.map((message, index) => {
             const isSameUserMessage = message.sender._id === user?._id;
+            const { day, time, isToday } = formatDateTime(message.updatedAt);
 
             return (
               <div
@@ -106,7 +116,9 @@ function ChatMessagesList({
                 >
                   {message.content}
                 </p>
-                <p className="text-xs place-self-end">{message.updatedAt}</p>
+                <p className="text-xs place-self-end">
+                  {isToday ? time : `${day}, ${time}`}
+                </p>
               </div>
             );
           })

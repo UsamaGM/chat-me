@@ -22,6 +22,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Fetching chats...");
       const response = await api.get("/chat");
+      console.log("Response of chats", response);
       setChats(response.data.chats);
     } catch (error) {
       toast.error(errorHandler(error));
