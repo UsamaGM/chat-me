@@ -3,7 +3,6 @@ import { AuthRequest } from "../middlewares/authMiddleware";
 import Chat from "../models/Chat";
 import User from "../models/User";
 import "colors";
-import { MongooseError } from "mongoose";
 import Message from "../models/Message";
 
 async function accessChat(req: AuthRequest, res: Response) {
@@ -20,7 +19,6 @@ async function accessChat(req: AuthRequest, res: Response) {
   })
     .populate("users", "-password")
     .populate("latestMessage");
-  console.log("Existing Chat", existingChat);
 
   existingChat = await User.populate(existingChat, {
     path: "latestMessage.sender",
@@ -29,7 +27,6 @@ async function accessChat(req: AuthRequest, res: Response) {
 
   if (existingChat) {
     res.status(200).json({ chat: existingChat });
-    console.log("Chat existed already!");
     return;
   } else {
     const chatData = {
@@ -56,7 +53,6 @@ async function getUserChats(req: AuthRequest, res: Response) {
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
-      .populate("latestMessage")
       .sort({ updatedAt: -1 });
 
     userChats = await User.populate(userChats, {
@@ -76,7 +72,8 @@ async function getChatById(req: AuthRequest, res: Response) {
   try {
     const queriedChat = await Message.find({ chat: id })
       .populate("sender")
-      .sort({ updatedAt: 1 });
+      .populate("reactions.userId")
+      .sort({ createdAt: 1 });
 
     if (!queriedChat) {
       res.status(400).json({ message: "Bad request!" });

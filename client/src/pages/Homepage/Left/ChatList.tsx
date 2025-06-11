@@ -15,7 +15,7 @@ function ChatList({ chatList }: { chatList: ChatType[] }) {
     return (
       <div
         key={chat._id}
-        className="bg-white/50 rounded-3xl cursor-pointer flex justify-between items-center px-6 py-2"
+        className="bg-white/50 rounded-3xl cursor-pointer flex justify-between items-center max-w-lg px-6 py-2"
         onClick={() => {
           navigate(`/home/chat/${chat._id}`);
           setSelectedChat(chat);

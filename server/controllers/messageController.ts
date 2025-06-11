@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import Message from "../models/Message";
-import User from "../models/User";
 import Chat from "../models/Chat";
 
 async function addNewMessage(req: AuthRequest, res: Response) {

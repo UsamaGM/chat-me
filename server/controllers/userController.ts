@@ -2,6 +2,7 @@ import generateToken from "../config/generateToken";
 import { Request, Response } from "express";
 import User, { UserType } from "../models/User";
 import { AuthRequest } from "../middlewares/authMiddleware";
+import crypto from "crypto";
 
 async function registerUser(req: Request, res: Response) {
   const { name, email, password, pic } = req.body;
@@ -21,6 +22,7 @@ async function registerUser(req: Request, res: Response) {
     name,
     email,
     password,
+    pic,
   });
 
   try {
@@ -54,16 +56,19 @@ async function loginUser(req: Request, res: Response) {
 
 async function searchUsers(req: AuthRequest, res: Response) {
   const { search } = req.params;
-  const query = search
-    ? {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-        ],
-      }
-    : {};
-  console.log(req.user);
-  const users = await User.find(query).find({ _id: { $ne: req.user?._id } });
+  const query =
+    search === "*"
+      ? {}
+      : {
+          $or: [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+          ],
+        };
+
+  const users = await User.find(query)
+    .find({ _id: { $ne: req.user?._id } })
+    .select("-password");
 
   res.json({ users });
 }
@@ -77,4 +82,55 @@ async function getUserProfile(req: AuthRequest, res: Response) {
   res.json(user);
 }
 
-export { registerUser, loginUser, searchUsers, getUserProfile };
+async function forgotPassword(req: Request, res: Response) {
+  const { email } = req.body;
+  const user = await User.findOne<UserType>({ email });
+
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await User.findByIdAndUpdate(user._id, { validateBeforeSave: false });
+
+  // In a real application, you would send an email with the reset link
+  console.log({ resetToken });
+
+  res
+    .status(200)
+    .json({ message: "Reset token sent to email (check console)" });
+}
+
+async function resetPassword(req: Request, res: Response) {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne<UserType>({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    res.status(400).json({ message: "Token is invalid or has expired" });
+    return;
+  }
+
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await User.findByIdAndUpdate(user._id, user);
+
+  res.status(200).json({ message: "Password reset successfully" });
+}
+
+export {
+  registerUser,
+  loginUser,
+  searchUsers,
+  getUserProfile,
+  forgotPassword,
+  resetPassword,
+};

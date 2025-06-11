@@ -1,5 +1,4 @@
 import { createContext } from "react";
-import type { UserType } from "./AuthProvider";
 
 type ResponseType = {
   success: boolean;
@@ -18,8 +17,21 @@ type AuthContextType = {
   ) => Promise<ResponseType>;
   login: (email: string, password: string) => Promise<ResponseType>;
   logout: () => void;
+  updateProfile: (data: {
+    name: string;
+    email: string;
+    bio?: string;
+    avatar?: File;
+  }) => Promise<ResponseType>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+export interface UserType {
+  _id: string;
+  name: string;
+  email: string;
+  pic: string;
+}
 
 export default AuthContext;

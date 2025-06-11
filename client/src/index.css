@@ -87,7 +87,12 @@
 }
 
 .animate-slide-in {
-  animation: slide-in-animation 300ms forwards ease-in-out;
+  animation: slide-in-animation 200ms forwards ease-in-out;
+}
+
+.animate-slide-in-delayed {
+  animation: slide-in-animation 200ms forwards ease-in-out;
+  animation-delay: 100ms;
 }
 
 @keyframes slide-in-animation {
@@ -105,6 +110,7 @@
   }
   100% {
     transform: translateY(0);
+    opacity: 1;
   }
 }
 

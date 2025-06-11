@@ -8,6 +8,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import messageRoutes from "./routes/messageRoutes";
 import userRoutes from "./routes/userRoutes";
+import { apiLimiter } from "./middlewares/rateLimiter";
 
 configDotenv();
 console.log("Environment variables loaded:".green.bold);
@@ -15,8 +16,9 @@ console.log("Environment variables loaded:".green.bold);
 const app = express();
 connectDB();
 
-app.use(express.json());
+// app.use(apiLimiter);
 app.use(cors());
+app.use(express.json());
 
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
@@ -31,6 +33,8 @@ const io = new Server(httpServer, {
   },
 });
 
+app.set("io", io);
+
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
@@ -44,12 +48,32 @@ io.on("connection", (socket) => {
     socket.leave(chatId);
   });
 
+  socket.on("typing-start", ({ chatId, userId }) => {
+    socket.to(chatId).emit("user-typing", { userId, chatId });
+  });
+
+  socket.on("typing-stop", ({ chatId, userId }) => {
+    socket.to(chatId).emit("user-stopped-typing", { userId, chatId });
+  });
+
   socket.on("message", (message) => {
     console.log(
       `Message received in chat ${message.chat._id}:`,
       message.content
     );
     io.in(message.chat._id).emit("chat-updated", message);
+  });
+
+  socket.on("message-read", ({ messageId, userId, chatId }) => {
+    io.in(chatId).emit("message-read-update", { messageId, userId });
+  });
+
+  socket.on("user-online", (userId) => {
+    socket.broadcast.emit("user-status-change", { userId, status: "online" });
+  });
+
+  socket.on("user-offline", (userId) => {
+    socket.broadcast.emit("user-status-change", { userId, status: "offline" });
   });
 
   socket.on("disconnect", () => {

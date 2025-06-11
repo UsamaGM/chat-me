@@ -1,18 +1,17 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import {
   ArrowRightEndOnRectangleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/solid";
-import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { TextInput, PasswordInput, Loader } from "@/components";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 function LoginPage() {
   const { login, loading } = useAuth();
-  const navigate = useNavigate();
 
   const loginFormSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -36,13 +35,14 @@ function LoginPage() {
   async function onSubmit(data: loginFormData) {
     if (loading) return;
     const { success, message } = await login(data.email, data.password);
+    console.log(success, message);
 
     if (success) {
       toast.success(message);
-      toast.info("Redirecting to home page...");
       setTimeout(() => {
         toast.hideAll();
-        navigate("/");
+        toast.info("Redirecting to home page...");
+        window.location.href = "http://localhost:5173/";
       }, 2000);
     } else {
       toast.error(message);
@@ -50,7 +50,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-white to-50%">
+    <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-b from-[#42bedd] to-[#59D976] to-70%">
       <div className="flex flex-col bg-white/20 backdrop-blur-xs rounded-4xl border border-gray-300 drop-shadow-md max-w-2xl w-fit h-fit p-6 my-6">
         <div>
           <div className="flex justify-center items-center p-2 w-18 h-18 mx-auto mb-4 shadow bg-white/25 rounded-3xl">
@@ -75,7 +75,10 @@ function LoginPage() {
               error={errors.password?.message}
               {...register("password")}
             />
-            <Link to="/forgot-password" className="place-self-end -mt-2">
+            <Link
+              to="/auth/forgot-password"
+              className="text-[#E36255] font-semibold place-self-end -mt-2"
+            >
               Forgot Password?
             </Link>
             <div className="flex items-center justify-center bg-gray-800 w-full rounded-2xl my-4 min-w-sm hover:bg-gray-700 transition duration-300 ease-in-out">
@@ -93,10 +96,10 @@ function LoginPage() {
           </div>
         </form>
         <div className="flex items-center justify-center p-6">
-          <p className="text-gray-600">Don't have an account?</p>
+          <p className="text-gray-600 font-semibold">Don't have an account?</p>
           <Link
-            to="/register"
-            className="text-[#42bedd] font-semibold ml-2 hover:text-[#42bedd]/80"
+            to="/auth/register"
+            className="text-[#096279] font-bold ml-2 hover:text-[#37A8BD]/80"
           >
             Sign Up
           </Link>

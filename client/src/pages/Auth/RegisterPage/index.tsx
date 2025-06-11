@@ -50,7 +50,7 @@ function RegisterPage() {
       toast.success(message);
       setTimeout(() => {
         toast.hideAll();
-        navigate("/login");
+        navigate("/auth/login");
       }, 2000);
     } else {
       toast.error(message);

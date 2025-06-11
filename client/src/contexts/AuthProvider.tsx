@@ -1,75 +1,67 @@
 import api from "@/config/api";
 import AuthContext from "./AuthContext";
 import errorHandler from "@/config/errorHandler";
-import { useEffect, useState } from "react";
-
-export type UserType = {
-  _id: string;
-  name: string;
-  email: string;
-  password: string;
-  pic: string;
-};
+import { useEffect, useState, useRef } from "react";
+import { toast } from "react-toast";
+import { Loader } from "@/components";
+import { type UserType } from "./AuthContext";
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
     !!localStorage.getItem("authToken")
   );
   const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const effectRan = useRef(false);
 
   useEffect(() => {
+    if (effectRan.current === true) {
+      return;
+    }
+    effectRan.current = true;
+
     const token = localStorage.getItem("authToken");
     if (token) {
-      fetchUserData();
+      console.log("Fetching profile");
+
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+      api
+        .get("/user/profile")
+        .then((response) => {
+          setUser(response.data);
+          setIsAuthenticated(true);
+        })
+        .catch((error) => {
+          if (error.code !== "ERR_NETWORK") {
+            localStorage.removeItem("authToken");
+            delete api.defaults.headers.common.Authorization;
+            setIsAuthenticated(false);
+            setUser(null);
+            toast.error("Your session has expired. Please log in again.");
+          } else {
+            toast.error("Failed to connect to server!");
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
   }, []);
 
-  async function fetchUserData() {
-    try {
-      setLoading(true);
-      const response = await api.get("/user/profile");
-      setUser(response.data);
-      return { success: true, message: "Fetched data successfully" };
-    } catch (error) {
-      return { success: false, message: errorHandler(error) };
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function register(
-    name: string,
-    email: string,
-    password: string,
-    pic?: string
-  ) {
-    try {
-      setLoading(true);
-      await api.post("/user/register", {
-        name,
-        email,
-        password,
-        pic,
-      });
-
-      return { success: true, message: "Successfully Registered the user!" };
-    } catch (error) {
-      return { success: false, message: errorHandler(error) };
-    } finally {
-      setLoading(false);
-    }
-  }
+  if (loading) return <Loader size="large" />;
 
   async function login(email: string, password: string) {
     try {
       setLoading(true);
-      const response = await api.post("/user/login", {
-        email,
-        password,
-      });
+      const response = await api.post("/user/login", { email, password });
 
-      localStorage.setItem("authToken", response.data.token);
+      const token = response.data.token;
+      localStorage.setItem("authToken", token);
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+
       setIsAuthenticated(true);
       setUser(response.data.user);
 
@@ -81,10 +73,55 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  function logout() {
+  async function logout() {
     localStorage.removeItem("authToken");
+    delete api.defaults.headers.common.Authorization;
+
     setIsAuthenticated(false);
     setUser(null);
+    window.location.href = "http://localhost:5173/";
+  }
+
+  // The register function does not need changes, but it's here for completeness.
+  async function register(
+    name: string,
+    email: string,
+    password: string,
+    pic?: string
+  ) {
+    try {
+      setLoading(true);
+      await api.post("/user/register", { name, email, password, pic });
+      return { success: true, message: "Successfully Registered the user!" };
+    } catch (error) {
+      return { success: false, message: errorHandler(error) };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // This function is fine as is.
+  async function updateProfile(data: {
+    name: string;
+    email: string;
+    bio?: string;
+    avatar?: File;
+  }) {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value) formData.append(key, value);
+      });
+
+      const response = await api.put("/user/profile", formData);
+      setUser(response.data);
+      return { success: true, message: "Profile updated successfully!" };
+    } catch (error) {
+      return { success: false, message: errorHandler(error) };
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -96,6 +133,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         login,
         logout,
+        updateProfile,
       }}
     >
       {children}
