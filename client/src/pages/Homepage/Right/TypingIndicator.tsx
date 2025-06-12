@@ -1,4 +1,4 @@
-import { type UserType } from "@/contexts/AuthProvider";
+import { type UserType } from "@/contexts/AuthContext";
 
 interface TypingIndicatorProps {
   typingUser: UserType | undefined;

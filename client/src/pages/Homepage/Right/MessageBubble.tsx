@@ -1,8 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useChat } from "@/hooks/useChat";
 import { type MessageType } from "@/contexts/ChatContext";
 import { format } from "date-fns";
-import { useEffect } from "react";
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import MessageReactions from "./MessageReactions";
@@ -23,19 +21,7 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message }: MessageBubbleProps) => {
   const { user } = useAuth();
-  const { markMessageAsRead } = useChat();
   const isOwnMessage = message.sender._id === user?._id;
-
-  // Mark message as read when it's displayed (if it's not the user's own message)
-  useEffect(() => {
-    if (
-      !isOwnMessage &&
-      message.seenBy &&
-      !message.seenBy.some((u) => u._id === user?._id)
-    ) {
-      markMessageAsRead?.(message._id);
-    }
-  }, [isOwnMessage, message, markMessageAsRead, user?._id]);
 
   return (
     <div

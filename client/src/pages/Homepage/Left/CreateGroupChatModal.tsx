@@ -7,7 +7,7 @@ import errorHandler from "@/config/errorHandler";
 import { useChat } from "@/hooks/useChat";
 import { useNavigate } from "react-router-dom";
 import type { ChatType } from "@/contexts/ChatContext";
-import type { UserType } from "@/contexts/AuthProvider";
+import type { UserType } from "@/contexts/AuthContext";
 
 function CreateGroupChatModal({ onClose }: { onClose: () => void }) {
   const [groupName, setGroupName] = useState("");

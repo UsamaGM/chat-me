@@ -2,7 +2,7 @@ import api from "@/config/api";
 import errorHandler from "@/config/errorHandler";
 import { useChat } from "@/hooks/useChat";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "react-toast";
 
 function MessageInputAndSendButton() {
@@ -15,9 +15,9 @@ function MessageInputAndSendButton() {
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!chatMessage.trim() || !selectedChat || isSending) return;
-    
+
     setIsSending(true);
     try {
       const response = await api.post("/message", {
@@ -28,11 +28,11 @@ function MessageInputAndSendButton() {
 
       // Emit the message event
       socket?.emit("message", newMessage);
-      
+
       // Reset message and stop typing indicator
       setChatMessage("");
       socket?.emit("stop-typing", { chatId: selectedChat._id });
-      
+
       // Focus back on input
       inputRef.current?.focus();
     } catch (error) {
@@ -50,12 +50,12 @@ function MessageInputAndSendButton() {
 
     // Emit typing event
     socket?.emit("typing", { chatId: selectedChat._id });
-    
+
     // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Set timeout to stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       socket?.emit("stop-typing", { chatId: selectedChat._id });
@@ -68,7 +68,7 @@ function MessageInputAndSendButton() {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
-      
+
       // Stop typing when component unmounts
       if (selectedChat) {
         socket?.emit("stop-typing", { chatId: selectedChat._id });
@@ -77,7 +77,10 @@ function MessageInputAndSendButton() {
   }, [selectedChat, socket]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center justify-between space-x-6 rounded-b-3xl my-4">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center justify-between space-x-6 rounded-b-3xl my-4"
+    >
       <input
         ref={inputRef}
         type="text"
@@ -87,13 +90,13 @@ function MessageInputAndSendButton() {
         disabled={isSending}
         className="w-full p-4 bg-white/30 rounded-3xl border border-blue-700/20 focus:outline-none focus:ring focus:ring-blue-700/50 disabled:opacity-75 transition-opacity"
         onKeyDown={(e) => {
-          if (e.key === 'Enter') {
+          if (e.key === "Enter") {
             e.preventDefault();
             handleSubmit(e);
           }
         }}
       />
-      <button 
+      <button
         type="submit"
         disabled={!chatMessage.trim() || isSending}
         className={`p-3 rounded-full ${
@@ -102,10 +105,14 @@ function MessageInputAndSendButton() {
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         } transition-colors`}
       >
-        <PaperAirplaneIcon 
-          width={16} 
-          height={16} 
-          className={isSending ? 'animate-pulse' : 'transform transition-transform hover:translate-x-1'} 
+        <PaperAirplaneIcon
+          width={16}
+          height={16}
+          className={
+            isSending
+              ? "animate-pulse"
+              : "transform transition-transform hover:translate-x-1"
+          }
         />
       </button>
     </form>

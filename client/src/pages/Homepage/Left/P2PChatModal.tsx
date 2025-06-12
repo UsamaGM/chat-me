@@ -2,7 +2,7 @@ import { Loader, TextInput } from "@/components";
 import { UserIcon } from "@heroicons/react/24/solid";
 import { useState, type ChangeEvent } from "react";
 import api from "@/config/api";
-import type { UserType } from "@/contexts/AuthProvider";
+import type { UserType } from "@/contexts/AuthContext";
 import { toast } from "react-toast";
 import errorHandler from "@/config/errorHandler";
 import { useNavigate } from "react-router-dom";
