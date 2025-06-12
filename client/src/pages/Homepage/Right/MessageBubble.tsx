@@ -1,9 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
-import { type MessageType } from "@/contexts/ChatContext";
 import { format } from "date-fns";
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import MessageReactions from "./MessageReactions";
+import type { MessageType } from "@/types/chat";
 
 interface MessageBubbleProps {
   message: MessageType & {

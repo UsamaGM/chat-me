@@ -1,6 +1,4 @@
-import { createContext } from "react";
-import type { UserType } from "./AuthProvider";
-import type { Socket } from "socket.io-client";
+import type { UserType } from "@/contexts/AuthContext";
 
 export interface ChatType {
   _id: string;
@@ -31,9 +29,6 @@ export interface ReactionType {
   createdAt: string;
 }
 
-/**
- * Payload for socket events related to read receipts
- */
 export interface ReadReceiptPayload {
   messageId: string;
   userId: string;
@@ -50,17 +45,3 @@ export interface ReactionEventPayload {
     userId: string;
   };
 }
-
-export interface ChatContextType {
-  isLoading: boolean;
-  chats: ChatType[];
-  selectedChat: ChatType | null;
-  socket: Socket | null;
-  messages: MessageType[];
-  typingUsers: Record<string, UserType[]>;
-  setSelectedChat: (chat: ChatType) => void;
-  updateChats: () => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
-}
-
-export const ChatContext = createContext<ChatContextType | null>(null);

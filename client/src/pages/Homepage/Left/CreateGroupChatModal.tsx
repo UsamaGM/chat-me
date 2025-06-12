@@ -4,17 +4,21 @@ import { UserGroupIcon, UserIcon } from "@heroicons/react/24/solid";
 import api from "@/config/api";
 import { toast } from "react-toast";
 import errorHandler from "@/config/errorHandler";
-import { useChat } from "@/hooks/useChat";
 import { useNavigate } from "react-router-dom";
-import type { ChatType } from "@/contexts/ChatContext";
 import type { UserType } from "@/contexts/AuthContext";
+import type { ChatType } from "@/types/chat";
 
-function CreateGroupChatModal({ onClose }: { onClose: () => void }) {
+interface PropTypes {
+  onClose: () => void;
+  updateChats: () => void;
+}
+
+function CreateGroupChatModal({ onClose, updateChats }: PropTypes) {
   const [groupName, setGroupName] = useState("");
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
-  const { updateChats } = useChat();
+
   const navigate = useNavigate();
 
   let timeout: NodeJS.Timeout | undefined;

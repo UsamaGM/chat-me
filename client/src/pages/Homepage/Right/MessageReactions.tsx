@@ -3,8 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import api from "@/config/api";
 import { toast } from "react-toast";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
-import type { MessageType, ReactionType } from "@/contexts/ChatContext";
 import errorHandler from "@/config/errorHandler";
+import type { MessageType, ReactionType } from "@/types/chat";
 
 // Common emoji reactions
 const COMMON_REACTIONS = ["👍", "❤️", "😊", "😂", "👏", "🎉"];
@@ -96,7 +96,6 @@ function MessageReactions({ message, align = "left" }: MessageReactionsProps) {
         {Object.entries(reactionGroups).map(([emoji, reactions]) => {
           // Check if current user has already reacted with this emoji
           const userReaction = reactions.find((r: ReactionType) => {
-            console.log(r.userId);
             return r.userId._id.toString() === user?._id.toString();
           });
 

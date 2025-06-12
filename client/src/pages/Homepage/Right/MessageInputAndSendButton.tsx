@@ -1,23 +1,26 @@
 import api from "@/config/api";
 import errorHandler from "@/config/errorHandler";
-import { useChat } from "@/hooks/useChat";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "react-toast";
+import { useOutletContext } from "react-router-dom";
+import type { Socket } from "socket.io-client";
+import type { ChatType } from "@/types/chat";
 
-function MessageInputAndSendButton() {
-  const { selectedChat, socket } = useChat();
+function MessageInputAndSendButton({
+  selectedChat,
+}: {
+  selectedChat: ChatType;
+}) {
+  const { socket } = useOutletContext<{ socket: Socket | null }>();
   const [chatMessage, setChatMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!chatMessage.trim() || !selectedChat || isSending) return;
-
     setIsSending(true);
     try {
       const response = await api.post("/message", {
@@ -25,15 +28,9 @@ function MessageInputAndSendButton() {
         chat: selectedChat._id,
       });
       const { newMessage } = response.data;
-
-      // Emit the message event
       socket?.emit("message", newMessage);
-
-      // Reset message and stop typing indicator
       setChatMessage("");
       socket?.emit("stop-typing", { chatId: selectedChat._id });
-
-      // Focus back on input
       inputRef.current?.focus();
     } catch (error) {
       toast.error(errorHandler(error));
@@ -42,36 +39,25 @@ function MessageInputAndSendButton() {
     }
   };
 
-  // Handle typing with debounce
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChatMessage(e.target.value);
-
-    if (!selectedChat) return;
-
-    // Emit typing event
-    socket?.emit("typing", { chatId: selectedChat._id });
-
-    // Clear previous timeout
+    if (!selectedChat || !socket) return;
+    socket.emit("typing", { chatId: selectedChat._id });
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-
-    // Set timeout to stop typing after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       socket?.emit("stop-typing", { chatId: selectedChat._id });
     }, 3000);
   };
 
-  // Cleanup typing timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
-
-      // Stop typing when component unmounts
-      if (selectedChat) {
-        socket?.emit("stop-typing", { chatId: selectedChat._id });
+      if (selectedChat && socket) {
+        socket.emit("stop-typing", { chatId: selectedChat._id });
       }
     };
   }, [selectedChat, socket]);

@@ -6,13 +6,16 @@ import type { UserType } from "@/contexts/AuthContext";
 import { toast } from "react-toast";
 import errorHandler from "@/config/errorHandler";
 import { useNavigate } from "react-router-dom";
-import { useChat } from "@/hooks/useChat";
-import type { ChatType } from "@/contexts/ChatContext";
+import type { ChatType } from "@/types/chat";
 
-function P2PChatModal({ onClose }: { onClose: () => void }) {
+interface PropTypes {
+  onClose: () => void;
+  updateChats: () => void;
+}
+
+function P2PChatModal({ onClose, updateChats }: PropTypes) {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { setSelectedChat, updateChats } = useChat();
   const navigate = useNavigate();
 
   let timeout: NodeJS.Timeout | undefined = undefined;
@@ -43,7 +46,6 @@ function P2PChatModal({ onClose }: { onClose: () => void }) {
 
       if (chat) {
         await updateChats();
-        setSelectedChat(chat);
         navigate(`/home/chat/${chat._id}`);
       } else {
         toast.error("Error creating chat...");
