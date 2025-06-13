@@ -70,6 +70,17 @@ async function getChatById(req: AuthRequest, res: Response) {
   const { id } = req.params;
 
   try {
+    const chat = await Chat.findOne({
+      _id: id,
+      users: { $elemMatch: { $eq: req.user?._id } },
+    });
+
+    if (!chat) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: You are not a member of this chat." });
+    }
+
     const queriedChat = await Message.find({ chat: id })
       .populate("sender")
       .populate("reactions.userId")

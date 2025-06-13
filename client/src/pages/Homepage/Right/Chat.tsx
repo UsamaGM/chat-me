@@ -8,10 +8,7 @@ import TypingIndicator from "./TypingIndicator";
 import { Loader } from "@/components";
 import { useLoaderData, useOutletContext, useParams } from "react-router-dom";
 import type { Socket } from "socket.io-client";
-import type { ChatType, MessageType } from "@/types/chat";
-import { toast } from "react-toast";
-import api from "@/config/api";
-import errorHandler from "@/config/errorHandler";
+import type { ChatType, MessageType, ReactionType } from "@/types/chat";
 import type { UserType } from "@/contexts/AuthContext";
 
 function Chat() {
@@ -29,7 +26,6 @@ function Chat() {
     loaderData?.data?.queriedChat || []
   );
   const [typingUsers, setTypingUsers] = useState<UserType[]>([]);
-  const [isLoading, setIsLoading] = useState(!loaderData);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedChat = chats.find((c) => c._id === chatId);
@@ -39,43 +35,40 @@ function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (chatId && !loaderData) {
-      setIsLoading(true);
-      api
-        .get(`/chat/${chatId}`)
-        .then((res) => setMessages(res.data.queriedChat))
-        .catch((err) => toast.error(errorHandler(err)))
-        .finally(() => setIsLoading(false));
-    }
-  }, [chatId, loaderData]);
+    setMessages(loaderData?.data?.queriedChat || []);
+  }, [loaderData]);
 
   useEffect(() => {
     if (socket && selectedChat) {
       socket.emit("join-chat", selectedChat._id);
 
       const onNewMessage = (newMessage: MessageType) => {
+        console.log("New Message", newMessage);
         if (newMessage.chat._id === selectedChat._id) {
           setMessages((prev) => [...prev, newMessage]);
         }
       };
 
-      const onUserTyping = ({
+      function onUserTyping({
         chatId: eventChatId,
-        user: typingUserInfo,
+        userId,
       }: {
         chatId: string;
-        user: UserType;
-      }) => {
-        if (
-          eventChatId === selectedChat._id &&
-          typingUserInfo._id !== user?._id
-        ) {
-          setTypingUsers((prev) => {
-            if (prev.find((u) => u._id === typingUserInfo._id)) return prev;
-            return [...prev, typingUserInfo];
-          });
+        userId: string;
+      }) {
+        if (eventChatId === selectedChat?._id && userId !== user?._id) {
+          // Find the full user object from the current chat's user list
+          const typingUserInfo = selectedChat.users.find(
+            (u) => u._id === userId
+          );
+          if (typingUserInfo) {
+            setTypingUsers((prev) => {
+              if (prev.find((u) => u._id === typingUserInfo._id)) return prev;
+              return [...prev, typingUserInfo];
+            });
+          }
         }
-      };
+      }
 
       const onUserStoppedTyping = ({
         chatId: eventChatId,
@@ -89,15 +82,62 @@ function Chat() {
         }
       };
 
+      function onMessageReadUpdate(payload: {
+        messageId: string;
+        seenBy: UserType;
+      }) {
+        setMessages((prevMessages) =>
+          prevMessages.map((message) =>
+            message._id === payload.messageId
+              ? { ...message, seenBy: [...message.seenBy, payload.seenBy] }
+              : message
+          )
+        );
+      }
+
+      const onMessageReaction = (payload: {
+        type: "add" | "remove";
+        chatId: string;
+        messageId: string;
+        reaction?: ReactionType;
+        reactionId?: string;
+      }) => {
+        if (selectedChat?._id === payload.chatId) {
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) => {
+              if (msg._id === payload.messageId) {
+                let newReactions = [...msg.reactions];
+                if (payload.type === "add" && payload.reaction) {
+                  if (
+                    !newReactions.some((r) => r._id === payload.reaction?._id)
+                  ) {
+                    newReactions.push(payload.reaction);
+                  }
+                } else if (payload.type === "remove" && payload.reactionId) {
+                  newReactions = newReactions.filter(
+                    (r) => r._id.toString() !== payload.reactionId
+                  );
+                }
+                return { ...msg, reactions: newReactions };
+              }
+              return msg;
+            })
+          );
+        }
+      };
+
       socket.on("chat-updated", onNewMessage);
       socket.on("user-typing", onUserTyping);
       socket.on("user-stopped-typing", onUserStoppedTyping);
+      socket.on("message-read-update", onMessageReadUpdate);
+      socket.on("messageReaction", onMessageReaction);
 
       return () => {
         socket.emit("leave-chat", selectedChat._id);
         socket.off("chat-updated", onNewMessage);
         socket.off("user-typing", onUserTyping);
         socket.off("user-stopped-typing", onUserStoppedTyping);
+        socket.off("messageReaction", onMessageReaction);
       };
     }
   }, [socket, selectedChat, user?._id]);
@@ -131,7 +171,7 @@ function Chat() {
 
       <div className="relative w-full h-full overflow-hidden px-6">
         <div className="flex flex-col space-y-2 overflow-y-auto h-full pb-24 pt-4">
-          {isLoading ? (
+          {!loaderData ? (
             <Loader />
           ) : messages.length > 0 ? (
             messages.map((message) => (

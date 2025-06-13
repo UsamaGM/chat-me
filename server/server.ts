@@ -9,6 +9,7 @@ import { Server } from "socket.io";
 import messageRoutes from "./routes/messageRoutes";
 import userRoutes from "./routes/userRoutes";
 import { apiLimiter } from "./middlewares/rateLimiter";
+import Message from "./models/Message";
 
 configDotenv();
 console.log("Environment variables loaded:".green.bold);
@@ -64,8 +65,23 @@ io.on("connection", (socket) => {
     io.in(message.chat._id).emit("chat-updated", message);
   });
 
-  socket.on("message-read", ({ messageId, userId, chatId }) => {
-    io.in(chatId).emit("message-read-update", { messageId, userId });
+  socket.on("message-read", async ({ messageId, userId, chatId }) => {
+    try {
+      const message = await Message.findByIdAndUpdate(
+        messageId,
+        { $addToSet: { seenBy: userId } },
+        { new: true }
+      ).populate("seenBy", "name pic _id");
+
+      if (message) {
+        io.in(chatId).emit("message-read-update", {
+          messageId,
+          seenBy: message.seenBy,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating message read status:", error);
+    }
   });
 
   socket.on("user-online", (userId) => {

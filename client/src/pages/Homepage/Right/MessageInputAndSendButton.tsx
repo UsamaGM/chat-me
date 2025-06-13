@@ -21,14 +21,14 @@ function MessageInputAndSendButton({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!chatMessage.trim() || !selectedChat || isSending) return;
+
     setIsSending(true);
     try {
-      const response = await api.post("/message", {
-        content: chatMessage.trim(),
+      await api.post("/message", {
         chat: selectedChat._id,
+        content: chatMessage.trim(),
       });
-      const { newMessage } = response.data;
-      socket?.emit("message", newMessage);
+
       setChatMessage("");
       socket?.emit("stop-typing", { chatId: selectedChat._id });
       inputRef.current?.focus();

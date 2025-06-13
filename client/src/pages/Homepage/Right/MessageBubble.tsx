@@ -5,21 +5,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import MessageReactions from "./MessageReactions";
 import type { MessageType } from "@/types/chat";
 
-interface MessageBubbleProps {
-  message: MessageType & {
-    reactions?: Array<{
-      _id: string;
-      emoji: string;
-      userId: {
-        _id: string;
-        name: string;
-        pic?: string;
-      };
-    }>;
-  };
-}
-
-const MessageBubble = ({ message }: MessageBubbleProps) => {
+const MessageBubble = ({ message }: { message: MessageType }) => {
   const { user } = useAuth();
   const isOwnMessage = message.sender._id === user?._id;
 

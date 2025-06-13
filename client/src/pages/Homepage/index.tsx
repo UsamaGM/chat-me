@@ -47,6 +47,7 @@ function Homepage() {
       socket.current = createSocket();
       const sock = socket.current;
 
+      sock.emit("user-online", user?._id);
       sock.on("chat-updated", (newMessage: MessageType) => {
         setChats((prevChats) =>
           prevChats
@@ -67,11 +68,35 @@ function Homepage() {
         );
       });
 
+      sock.on(
+        "user-status-change",
+        ({
+          userId,
+          status,
+        }: {
+          userId: string;
+          status: "online" | "offline";
+        }) => {
+          //TODO:Here you would implement logic to update the user's status in your state.
+          // This might involve adding an 'isOnline' property to your UserType.
+          console.log(`User ${userId} is now ${status}`);
+          // Example:
+          // setChats(prevChats =>
+          //   prevChats.map(chat => ({
+          //     ...chat,
+          //     users: chat.users.map(u =>
+          //       u._id === userId ? { ...u, isOnline: status === 'online' } : u
+          //     ),
+          //   }))
+          // );
+        }
+      );
+
       return () => {
         sock.disconnect();
       };
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   return (
     <div

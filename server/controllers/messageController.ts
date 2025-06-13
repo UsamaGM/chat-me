@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
+import { Socket } from "socket.io";
 
 async function addNewMessage(req: AuthRequest, res: Response) {
   const { chat, content } = req.body;
@@ -12,21 +13,19 @@ async function addNewMessage(req: AuthRequest, res: Response) {
       chat,
       sender: req.user?._id,
     });
+
     const newMessage = await (
       await (await message.save()).populate("chat")
-    ).populate("sender");
+    ).populate("sender", "name email pic _id");
 
-    const updatedChat = await Chat.findByIdAndUpdate(
-      chat,
-      {
-        latestMessage: newMessage._id,
-      },
-      { new: true }
-    )
-      .populate("users", "-password")
-      .populate("latestMessage");
+    await Chat.findByIdAndUpdate(chat, {
+      latestMessage: newMessage._id,
+    });
 
-    res.status(200).json({ newMessage, updatedChat });
+    const io: Socket = req.app.get("io");
+    io.in(chat).emit("chat-updated", newMessage);
+
+    res.status(200).json({ newMessage });
   } catch (error) {
     res
       .status(500)
