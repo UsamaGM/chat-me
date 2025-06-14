@@ -45,12 +45,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave-chat", (chatId) => {
-    console.log(`User ${socket.id} left the chat: ${chatId}`);
     socket.leave(chatId);
   });
 
   socket.on("typing-start", ({ chatId, userId }) => {
-    socket.to(chatId).emit("user-typing", { userId, chatId });
+    socket.to(chatId).emit("user-started-typing", { userId, chatId });
   });
 
   socket.on("typing-stop", ({ chatId, userId }) => {
@@ -58,10 +57,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("message", (message) => {
-    console.log(
-      `Message received in chat ${message.chat._id}:`,
-      message.content
-    );
     io.in(message.chat._id).emit("chat-updated", message);
   });
 

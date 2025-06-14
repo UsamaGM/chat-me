@@ -5,7 +5,13 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import MessageReactions from "./MessageReactions";
 import type { MessageType } from "@/types/chat";
 
-const MessageBubble = ({ message }: { message: MessageType }) => {
+const MessageBubble = ({
+  message,
+  isGroupChat,
+}: {
+  message: MessageType;
+  isGroupChat: boolean;
+}) => {
   const { user } = useAuth();
   const isOwnMessage = message.sender._id === user?._id;
 
@@ -38,7 +44,7 @@ const MessageBubble = ({ message }: { message: MessageType }) => {
           }`}
         >
           {/* Sender name for group chats */}
-          {message.chat.isGroupChat && !isOwnMessage && (
+          {isGroupChat && !isOwnMessage && (
             <div className="text-xs font-medium mb-1 text-blue-600">
               {message.sender.name}
             </div>

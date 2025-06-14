@@ -4,6 +4,7 @@ import Chat from "../models/Chat";
 import User from "../models/User";
 import "colors";
 import Message from "../models/Message";
+import { Socket } from "socket.io";
 
 async function accessChat(req: AuthRequest, res: Response) {
   const { userId } = req.body;
@@ -125,9 +126,20 @@ async function addToGroup(req: AuthRequest, res: Response) {
   const { chatId, userId }: { chatId: string; userId: string } = req.body;
 
   try {
-    const userExists = await Chat.findOne({
-      $and: [{ _id: chatId }, { users: userId }],
-    });
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      res.status(404).json({ message: "Chat not found" });
+      return;
+    }
+
+    if (chat.groupAdmin?.toString() !== req.user._id.toString()) {
+      res
+        .status(403)
+        .json({ message: "Forbidden: Only group admins can add members!" });
+    }
+
+    const userExists = chat.users.some((id) => id.toString() === userId);
 
     if (userExists) {
       res.status(400).json({ message: "User already in the group!" });
@@ -142,6 +154,10 @@ async function addToGroup(req: AuthRequest, res: Response) {
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
+    const io: Socket = req.app.get("io");
+
+    io.to(chatId).emit("user-added", updatedChat?.users);
+
     res.status(200).json({ updatedChat });
   } catch (error: any) {
     res.status(500).json({ message: "Server Error: Failed to update Chat!" });
@@ -154,6 +170,32 @@ async function removeFromGroup(req: AuthRequest, res: Response) {
   const { chatId, userId }: { chatId: string; userId: string } = req.body;
 
   try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      res.status(404).json({ message: "Chat not found" });
+      return;
+    }
+
+    if (!chat.isGroupChat) {
+      res.status(400).json({ message: "This is not a group chat!" });
+      return;
+    }
+
+    if (chat.groupAdmin?.toString() !== req.user?._id.toString()) {
+      return res.status(403).json({
+        message: "You are not authorized to remove members from this group.",
+      });
+    }
+
+    if (req.user?._id.toString() === userId) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Admin cannot remove themselves from the group. Please assign a new admin first.",
+        });
+    }
+
     const isGroupAdmin = await Chat.findOne({
       $and: [{ _id: chatId }, { groupAdmin: req.user?._id }],
     });

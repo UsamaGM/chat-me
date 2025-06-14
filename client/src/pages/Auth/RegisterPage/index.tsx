@@ -47,6 +47,7 @@ function RegisterPage() {
     const { success, message } = await registerUser(name, email, password);
 
     if (success) {
+      console.log("Registered");
       toast.success(message);
       setTimeout(() => {
         toast.hideAll();
@@ -112,7 +113,7 @@ function RegisterPage() {
         <div className="flex items-center justify-center p-6">
           <p className="text-gray-600">Already have an account?</p>
           <Link
-            to="/login"
+            to="/auth/login"
             className="text-[#42bedd] font-semibold ml-2 hover:text-[#42bedd]/80"
           >
             Sign In

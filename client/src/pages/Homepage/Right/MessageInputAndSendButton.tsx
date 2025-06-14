@@ -6,17 +6,19 @@ import { toast } from "react-toast";
 import { useOutletContext } from "react-router-dom";
 import type { Socket } from "socket.io-client";
 import type { ChatType } from "@/types/chat";
+import { useAuth } from "@/hooks/useAuth";
 
-function MessageInputAndSendButton({
-  selectedChat,
-}: {
+interface PropTypes {
   selectedChat: ChatType;
-}) {
-  const { socket } = useOutletContext<{ socket: Socket | null }>();
+}
+
+function MessageInputAndSendButton({ selectedChat }: PropTypes) {
   const [chatMessage, setChatMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { socket } = useOutletContext<{ socket: Socket | null }>();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,7 +32,10 @@ function MessageInputAndSendButton({
       });
 
       setChatMessage("");
-      socket?.emit("stop-typing", { chatId: selectedChat._id });
+      socket?.emit("typing-stop", {
+        chatId: selectedChat._id,
+        userId: user?._id,
+      });
       inputRef.current?.focus();
     } catch (error) {
       toast.error(errorHandler(error));
@@ -42,12 +47,18 @@ function MessageInputAndSendButton({
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChatMessage(e.target.value);
     if (!selectedChat || !socket) return;
-    socket.emit("typing", { chatId: selectedChat._id });
+    socket.emit("typing-start", {
+      chatId: selectedChat._id,
+      userId: user?._id,
+    });
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     typingTimeoutRef.current = setTimeout(() => {
-      socket?.emit("stop-typing", { chatId: selectedChat._id });
+      socket?.emit("typing-stop", {
+        chatId: selectedChat._id,
+        userId: user?._id,
+      });
     }, 3000);
   };
 

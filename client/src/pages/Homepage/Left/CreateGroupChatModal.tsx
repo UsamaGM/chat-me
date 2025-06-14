@@ -10,7 +10,7 @@ import type { ChatType } from "@/types/chat";
 
 interface PropTypes {
   onClose: () => void;
-  updateChats: () => void;
+  updateChats: () => Promise<void>;
 }
 
 function CreateGroupChatModal({ onClose, updateChats }: PropTypes) {

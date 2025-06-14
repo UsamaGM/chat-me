@@ -2,7 +2,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
 import MessageInputAndSendButton from "./MessageInputAndSendButton";
 import UsernameWithEmailAndAvatar from "../UsernameWithEmailAndAvatar";
-import { Bars3Icon, PhoneIcon, ShareIcon } from "@heroicons/react/24/solid";
+import {
+  Bars3Icon,
+  Cog6ToothIcon,
+  PhoneIcon,
+  ShareIcon,
+} from "@heroicons/react/24/solid";
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Loader } from "@/components";
@@ -10,25 +15,25 @@ import { useLoaderData, useOutletContext, useParams } from "react-router-dom";
 import type { Socket } from "socket.io-client";
 import type { ChatType, MessageType, ReactionType } from "@/types/chat";
 import type { UserType } from "@/contexts/AuthContext";
+import GroupSettingsModal from "./GroupSettingsModal";
 
 function Chat() {
-  const { user, logout } = useAuth();
-  const { id: chatId } = useParams<{ id: string }>();
-  const { chats, socket } = useOutletContext<{
-    chats: ChatType[];
-    socket: Socket | null;
-  }>();
   const loaderData = useLoaderData() as {
     data: { queriedChat: MessageType[] };
   };
 
-  const [messages, setMessages] = useState<MessageType[]>(
-    loaderData?.data?.queriedChat || []
-  );
   const [typingUsers, setTypingUsers] = useState<UserType[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState(loaderData?.data?.queriedChat || []);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
 
-  const selectedChat = chats.find((c) => c._id === chatId);
+  const { user, logout } = useAuth();
+  const { id: chatId } = useParams();
+  const { chats, socket, updateChats } = useOutletContext<{
+    chats: ChatType[];
+    socket: Socket | null;
+    updateChats: () => Promise<void>;
+  }>();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,12 +43,12 @@ function Chat() {
     setMessages(loaderData?.data?.queriedChat || []);
   }, [loaderData]);
 
+  const selectedChat = chats.find((c) => c._id === chatId);
   useEffect(() => {
     if (socket && selectedChat) {
       socket.emit("join-chat", selectedChat._id);
 
       const onNewMessage = (newMessage: MessageType) => {
-        console.log("New Message", newMessage);
         if (newMessage.chat._id === selectedChat._id) {
           setMessages((prev) => [...prev, newMessage]);
         }
@@ -151,16 +156,35 @@ function Chat() {
   }
 
   const otherUser = selectedChat.users.find((u) => u._id !== user?._id);
+  const chatTitle = selectedChat.isGroupChat
+    ? selectedChat.chatName
+    : selectedChat.users.find((u) => u._id !== user?._id)?.name;
+  const chatSubtitle = selectedChat.isGroupChat
+    ? selectedChat.users.reduce(
+        (a, u) => (u._id === user?._id ? a + "You " : a + u.name + " "),
+        ""
+      )
+    : otherUser?.email;
+  const chatPic = selectedChat.isGroupChat ? undefined : otherUser?.pic;
+  const isAdmin =
+    selectedChat.isGroupChat && selectedChat.groupAdmin._id === user?._id;
 
   return (
     <div className="relative flex flex-col flex-2/3 bg-white/30 rounded-3xl">
       <div className="p-6 border-b border-white/20">
         <UsernameWithEmailAndAvatar
-          user={otherUser!}
+          title={chatTitle}
+          subtitle={chatSubtitle}
+          pic={chatPic}
           rightIcons={
             <>
               <PhoneIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
               <ShareIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
+              {isAdmin && (
+                <button onClick={() => setShowGroupSettings(true)}>
+                  <Cog6ToothIcon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
+                </button>
+              )}
               <button onClick={logout}>
                 <Bars3Icon className="w-9 h-9 p-2 rounded-full bg-blue-700/20 backdrop-blur-md text-blue-600 hover:scale-110 transition duration-300 cursor-pointer" />
               </button>
@@ -175,7 +199,11 @@ function Chat() {
             <Loader />
           ) : messages.length > 0 ? (
             messages.map((message) => (
-              <MessageBubble key={message._id} message={message} />
+              <MessageBubble
+                key={message._id}
+                message={message}
+                isGroupChat={selectedChat.isGroupChat}
+              />
             ))
           ) : (
             <p className="text-center my-4 text-gray-500">
@@ -194,6 +222,14 @@ function Chat() {
           <MessageInputAndSendButton selectedChat={selectedChat} />
         </div>
       </div>
+
+      {showGroupSettings && selectedChat && (
+        <GroupSettingsModal
+          chat={selectedChat}
+          onClose={() => setShowGroupSettings(false)}
+          updateChats={updateChats}
+        />
+      )}
     </div>
   );
 }

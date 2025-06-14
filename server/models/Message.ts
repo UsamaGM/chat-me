@@ -5,7 +5,7 @@ import { UserType } from "./User";
 export interface ReactionType {
   _id: mongoose.Types.ObjectId;
   emoji: string;
-  userId: mongoose.Types.ObjectId | UserType;
+  userId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

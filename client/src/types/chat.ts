@@ -4,7 +4,7 @@ export interface ChatType {
   _id: string;
   chatName: string;
   createdAt: string;
-  groupAdmin: string;
+  groupAdmin: UserType;
   isGroupChat: boolean;
   latestMessage?: MessageType;
   updatedAt: string;
@@ -36,12 +36,9 @@ export interface ReadReceiptPayload {
 }
 
 export interface ReactionEventPayload {
-  reactionId: string;
   chatId: string;
   messageId: string;
   type: string;
-  reaction: {
-    emoji: string;
-    userId: string;
-  };
+  reaction?: ReactionType;
+  reactionId?: string;
 }

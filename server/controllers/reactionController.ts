@@ -1,18 +1,14 @@
 import { Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware";
-import Message from "../models/Message";
+import Message, { ReactionType } from "../models/Message";
 import { Server } from "socket.io";
-import { UserType } from "../models/User";
 
 // Interface for reaction socket event payload
 export interface ReactionEventPayload {
   type: "add" | "remove";
   chatId: string;
   messageId: string;
-  reaction?: {
-    emoji: string;
-    userId: string;
-  };
+  reaction?: ReactionType | undefined;
   reactionId?: string;
 }
 
@@ -38,13 +34,11 @@ export async function addReaction(req: AuthRequest, res: Response) {
     }
 
     // Check if user has already reacted with this emoji
-    const existingReaction = message.reactions.find(
-      (reaction) =>
-        reaction.userId.toString() === req.user?._id.toString() &&
-        reaction.emoji === emoji
+    const existingReaction = message.reactions.findIndex(
+      (reaction) => reaction.userId.toString() === req.user?._id.toString()
     );
 
-    if (existingReaction) {
+    if (existingReaction !== -1) {
       return res.status(400).json({
         success: false,
         message: "You have already used this reaction",
@@ -74,10 +68,7 @@ export async function addReaction(req: AuthRequest, res: Response) {
       type: "add",
       chatId: message.chat!._id.toString(),
       messageId: message._id.toString(),
-      reaction: {
-        emoji: newReaction!.emoji,
-        userId: newReaction!.userId,
-      },
+      reaction: newReaction,
     };
 
     io.to(message.chat!.toString()).emit("messageReaction", payload);

@@ -3,7 +3,12 @@ import { BellIcon } from "@heroicons/react/24/solid";
 import ChatList from "./Left/ChatList";
 import CreateGroupChatModal from "./Left/CreateGroupChatModal";
 import NewChatModal from "./Left/NewChatModal";
-import { Outlet, useLoaderData } from "react-router-dom";
+import {
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import P2PChatModal from "./Left/P2PChatModal";
 import { useAuth } from "@/hooks/useAuth";
 import UsernameWithEmailAndAvatar from "./UsernameWithEmailAndAvatar";
@@ -22,6 +27,8 @@ function Homepage() {
   const { user, isAuthenticated } = useAuth();
   const loaderData = useLoaderData() as { data: { chats: ChatType[] } };
   const [chats, setChats] = useState<ChatType[]>(loaderData?.data?.chats || []);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const socket = useRef<Socket | null>(null);
 
   const updateChats = useCallback(async () => {
@@ -77,26 +84,33 @@ function Homepage() {
           userId: string;
           status: "online" | "offline";
         }) => {
-          //TODO:Here you would implement logic to update the user's status in your state.
-          // This might involve adding an 'isOnline' property to your UserType.
-          console.log(`User ${userId} is now ${status}`);
-          // Example:
-          // setChats(prevChats =>
-          //   prevChats.map(chat => ({
-          //     ...chat,
-          //     users: chat.users.map(u =>
-          //       u._id === userId ? { ...u, isOnline: status === 'online' } : u
-          //     ),
-          //   }))
-          // );
+          setChats((prevChats) =>
+            prevChats.map((chat) => ({
+              ...chat,
+              users: chat.users.map((u) =>
+                u._id === userId ? { ...u, isOnline: status === "online" } : u
+              ),
+            }))
+          );
         }
       );
+
+      sock.on("chat-removed", ({ chatId }: { chatId: string }) => {
+        setChats((prevChats) =>
+          prevChats.filter((chat) => chat._id !== chatId)
+        );
+
+        if (pathname === `/home/chat/${chatId}`) {
+          navigate("/home");
+          toast.info("You have been removed from the group.");
+        }
+      });
 
       return () => {
         sock.disconnect();
       };
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, pathname, navigate]);
 
   return (
     <div
@@ -107,7 +121,9 @@ function Homepage() {
         {/* Chat List Side */}
         <div className="relative flex flex-col flex-1/3 gap-5 p-6">
           <UsernameWithEmailAndAvatar
-            user={user}
+            title={user?.name}
+            subtitle={user?.email}
+            pic={user?.pic}
             rightIcons={
               <BellIcon className="w-6 h-6 text-gray-600 hover:animate-ring-bell" />
             }
