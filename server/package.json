@@ -4,7 +4,8 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "ts-node --transpile-only server.ts"
+    "server": "ts-node --transpile-only server.ts",
+    "build": "tsc"
   },
   "author": "Usama Mangi",
   "license": "MIT",
