@@ -62,7 +62,6 @@ function Chat() {
         userId: string;
       }) {
         if (eventChatId === selectedChat?._id && userId !== user?._id) {
-          // Find the full user object from the current chat's user list
           const typingUserInfo = selectedChat.users.find(
             (u) => u._id === userId
           );
@@ -91,6 +90,7 @@ function Chat() {
         messageId: string;
         seenBy: UserType;
       }) {
+        console.log("Message read update:", payload);
         setMessages((prevMessages) =>
           prevMessages.map((message) =>
             message._id === payload.messageId
@@ -131,17 +131,17 @@ function Chat() {
         }
       };
 
-      socket.on("chat-updated", onNewMessage);
-      socket.on("user-typing", onUserTyping);
-      socket.on("user-stopped-typing", onUserStoppedTyping);
+      socket.on("new message", onNewMessage);
+      socket.on("user started typing", onUserTyping);
+      socket.on("user stopped typing", onUserStoppedTyping);
       socket.on("message-read-update", onMessageReadUpdate);
       socket.on("messageReaction", onMessageReaction);
 
       return () => {
         socket.emit("leave-chat", selectedChat._id);
-        socket.off("chat-updated", onNewMessage);
-        socket.off("user-typing", onUserTyping);
-        socket.off("user-stopped-typing", onUserStoppedTyping);
+        socket.off("new message", onNewMessage);
+        socket.off("user started typing", onUserTyping);
+        socket.off("user stopped typing", onUserStoppedTyping);
         socket.off("messageReaction", onMessageReaction);
       };
     }

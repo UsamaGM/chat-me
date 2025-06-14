@@ -3,29 +3,39 @@ import { AuthRequest } from "../middlewares/authMiddleware";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
 import { Socket } from "socket.io";
+import { UserType } from "../models/User";
 
 async function addNewMessage(req: AuthRequest, res: Response) {
   const { chat, content } = req.body;
 
   try {
-    const message = new Message({
+    let message = await Message.create({
       content,
       chat,
       sender: req.user?._id,
     });
 
-    const newMessage = await (
-      await (await message.save()).populate("chat")
-    ).populate("sender", "name email pic _id");
+    message = await message.populate("sender", "name email pic");
+    message = await message.populate({
+      path: "chat",
+      populate: {
+        path: "users",
+        select: "name email pic",
+      },
+    });
 
     await Chat.findByIdAndUpdate(chat, {
-      latestMessage: newMessage._id,
+      latestMessage: message._id,
     });
 
     const io: Socket = req.app.get("io");
-    io.in(chat).emit("chat-updated", newMessage);
+    if (message.chat && (message.chat as any).users) {
+      (message.chat as any).users.forEach((user: UserType) => {
+        io.in(user._id.toString()).emit("new message", message);
+      });
+    }
 
-    res.status(200).json({ newMessage });
+    res.sendStatus(200);
   } catch (error) {
     res
       .status(500)

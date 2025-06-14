@@ -48,12 +48,13 @@ io.on("connection", (socket) => {
     socket.leave(chatId);
   });
 
-  socket.on("typing-start", ({ chatId, userId }) => {
-    socket.to(chatId).emit("user-started-typing", { userId, chatId });
+  socket.on("typing start", ({ chatId, userId }) => {
+    console.log(`User ${userId} started typing in chat: ${chatId}`);
+    socket.to(chatId).emit("user started typing", { userId, chatId });
   });
 
-  socket.on("typing-stop", ({ chatId, userId }) => {
-    socket.to(chatId).emit("user-stopped-typing", { userId, chatId });
+  socket.on("typing stop", ({ chatId, userId }) => {
+    socket.to(chatId).emit("user stopped typing", { userId, chatId });
   });
 
   socket.on("message", (message) => {
@@ -80,10 +81,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("user-online", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} connected and joined their room.`.cyan);
     socket.broadcast.emit("user-status-change", { userId, status: "online" });
   });
 
   socket.on("user-offline", (userId) => {
+    socket.leave(userId);
+    console.log(`User ${userId} disconnected and left their room.`.red);
     socket.broadcast.emit("user-status-change", { userId, status: "offline" });
   });
 

@@ -47,7 +47,7 @@ function MessageInputAndSendButton({ selectedChat }: PropTypes) {
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChatMessage(e.target.value);
     if (!selectedChat || !socket) return;
-    socket.emit("typing-start", {
+    socket.emit("typing start", {
       chatId: selectedChat._id,
       userId: user?._id,
     });
@@ -55,7 +55,7 @@ function MessageInputAndSendButton({ selectedChat }: PropTypes) {
       clearTimeout(typingTimeoutRef.current);
     }
     typingTimeoutRef.current = setTimeout(() => {
-      socket?.emit("typing-stop", {
+      socket?.emit("typing stop", {
         chatId: selectedChat._id,
         userId: user?._id,
       });
@@ -68,10 +68,15 @@ function MessageInputAndSendButton({ selectedChat }: PropTypes) {
         clearTimeout(typingTimeoutRef.current);
       }
       if (selectedChat && socket) {
-        socket.emit("stop-typing", { chatId: selectedChat._id });
+        socket.emit("typing stop", {
+          chatId: selectedChat._id,
+          userId: user?._id,
+        });
+        socket.off("typing start");
+        socket.off("typing stop");
       }
     };
-  }, [selectedChat, socket]);
+  }, [selectedChat, socket, user]);
 
   return (
     <form

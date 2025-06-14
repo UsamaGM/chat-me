@@ -55,7 +55,8 @@ function Homepage() {
       const sock = socket.current;
 
       sock.emit("user-online", user?._id);
-      sock.on("chat-updated", (newMessage: MessageType) => {
+
+      const handleNewMessage = (newMessage: MessageType) => {
         setChats((prevChats) =>
           prevChats
             .map((chat) =>
@@ -73,27 +74,37 @@ function Homepage() {
                 new Date(a.updatedAt).getTime()
             )
         );
-      });
 
-      sock.on(
-        "user-status-change",
-        ({
-          userId,
-          status,
-        }: {
-          userId: string;
-          status: "online" | "offline";
-        }) => {
-          setChats((prevChats) =>
-            prevChats.map((chat) => ({
-              ...chat,
-              users: chat.users.map((u) =>
-                u._id === userId ? { ...u, isOnline: status === "online" } : u
-              ),
-            }))
+        if (pathname !== `/home/chat/${newMessage.chat._id}`) {
+          toast.info(
+            `New message in ${
+              newMessage.chat.isGroupChat
+                ? newMessage.chat.chatName
+                : newMessage.sender.name
+            }`
           );
         }
-      );
+      };
+
+      const handleUserStatusChange = ({
+        userId,
+        status,
+      }: {
+        userId: string;
+        status: "online" | "offline";
+      }) => {
+        setChats((prevChats) =>
+          prevChats.map((chat) => ({
+            ...chat,
+            users: chat.users.map((u) =>
+              u._id === userId ? { ...u, isOnline: status === "online" } : u
+            ),
+          }))
+        );
+      };
+
+      sock.on("new message", handleNewMessage);
+      sock.on("user-status-change", handleUserStatusChange);
 
       sock.on("chat-removed", ({ chatId }: { chatId: string }) => {
         setChats((prevChats) =>
