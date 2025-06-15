@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
 const createSocket = () =>
-  io("http://localhost:3000/", {
+  io(import.meta.env.VITE_BASE_SERVER_URL || "http://localhost:3000/", {
     transports: ["websocket"],
     withCredentials: true,
   });
