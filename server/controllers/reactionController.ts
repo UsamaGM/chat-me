@@ -17,20 +17,22 @@ export async function addReaction(req: AuthRequest, res: Response) {
 
   // Validation
   if (!messageId || !emoji) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Message ID and emoji are required",
     });
+    return;
   }
 
   try {
     const message = await Message.findById(messageId);
 
     if (!message) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Message not found",
       });
+      return;
     }
 
     // Check if user has already reacted with this emoji
@@ -39,10 +41,11 @@ export async function addReaction(req: AuthRequest, res: Response) {
     );
 
     if (existingReaction !== -1) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "You have already used this reaction",
       });
+      return;
     }
 
     // Add new reaction
@@ -68,7 +71,7 @@ export async function addReaction(req: AuthRequest, res: Response) {
       type: "add",
       chatId: message.chat!._id.toString(),
       messageId: message._id.toString(),
-      reaction: newReaction,
+      reaction: newReaction as any,
     };
 
     io.to(message.chat!.toString()).emit("messageReaction", payload);
@@ -87,15 +90,19 @@ export async function addReaction(req: AuthRequest, res: Response) {
   }
 }
 
-export async function removeReaction(req: AuthRequest, res: Response) {
+export async function removeReaction(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const { messageId, reactionId } = req.body;
 
   // Validation
   if (!messageId || !reactionId) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Message ID and reaction ID are required",
     });
+    return;
   }
 
   try {
@@ -103,10 +110,11 @@ export async function removeReaction(req: AuthRequest, res: Response) {
     const message = await Message.findById(messageId);
 
     if (!message) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Message not found",
       });
+      return;
     }
 
     // Find the reaction and verify ownership
@@ -117,10 +125,11 @@ export async function removeReaction(req: AuthRequest, res: Response) {
     );
 
     if (reactionIndex === -1) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         message: "Reaction not found or you are not authorized to remove it",
       });
+      return;
     }
 
     // Remove reaction

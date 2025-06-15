@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import User, { UserType } from "../models/User";
 
 export interface AuthRequest extends Request {
-  user: UserType;
+  user?: UserType;
 }
 
 async function authMiddleware(

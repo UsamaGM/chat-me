@@ -77,9 +77,10 @@ async function getChatById(req: AuthRequest, res: Response) {
     });
 
     if (!chat) {
-      return res
+      res
         .status(403)
         .json({ message: "Forbidden: You are not a member of this chat." });
+      return;
     }
 
     const queriedChat = await Message.find({ chat: id })
@@ -133,7 +134,7 @@ async function addToGroup(req: AuthRequest, res: Response) {
       return;
     }
 
-    if (chat.groupAdmin?.toString() !== req.user._id.toString()) {
+    if (chat.groupAdmin?.toString() !== req.user?._id.toString()) {
       res
         .status(403)
         .json({ message: "Forbidden: Only group admins can add members!" });
@@ -182,18 +183,18 @@ async function removeFromGroup(req: AuthRequest, res: Response) {
     }
 
     if (chat.groupAdmin?.toString() !== req.user?._id.toString()) {
-      return res.status(403).json({
+      res.status(403).json({
         message: "You are not authorized to remove members from this group.",
       });
+      return;
     }
 
     if (req.user?._id.toString() === userId) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Admin cannot remove themselves from the group. Please assign a new admin first.",
-        });
+      res.status(400).json({
+        message:
+          "Admin cannot remove themselves from the group. Please assign a new admin first.",
+      });
+      return;
     }
 
     const isGroupAdmin = await Chat.findOne({

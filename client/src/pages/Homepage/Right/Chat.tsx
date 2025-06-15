@@ -49,6 +49,7 @@ function Chat() {
       socket.emit("join-chat", selectedChat._id);
 
       const onNewMessage = (newMessage: MessageType) => {
+        console.log("New Message", newMessage);
         if (newMessage.chat._id === selectedChat._id) {
           setMessages((prev) => [...prev, newMessage]);
         }
@@ -107,6 +108,7 @@ function Chat() {
         reaction?: ReactionType;
         reactionId?: string;
       }) => {
+        console.log("New Message Reaction");
         if (selectedChat?._id === payload.chatId) {
           setMessages((prevMessages) =>
             prevMessages.map((msg) => {
@@ -170,8 +172,8 @@ function Chat() {
     selectedChat.isGroupChat && selectedChat.groupAdmin._id === user?._id;
 
   return (
-    <div className="relative flex flex-col flex-2/3 bg-white/30 rounded-3xl">
-      <div className="p-6 border-b border-white/20">
+    <div className="relative flex flex-col flex-2/3 bg-white/30 rounded-3xl overflow-hidden">
+      <div className="px-6 py-4 border-b border-white/20">
         <UsernameWithEmailAndAvatar
           title={chatTitle}
           subtitle={chatSubtitle}
@@ -193,8 +195,8 @@ function Chat() {
         />
       </div>
 
-      <div className="relative w-full h-full overflow-hidden px-6">
-        <div className="flex flex-col space-y-2 overflow-y-auto h-full pb-24 pt-4">
+      <div className="flex flex-col w-full h-full overflow-hidden">
+        <div className="flex flex-col space-y-2 overflow-y-auto h-full px-6 pt-4">
           {!loaderData ? (
             <Loader />
           ) : messages.length > 0 ? (
@@ -218,7 +220,7 @@ function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="absolute px-6 w-full bottom-0 right-0 bg-white/30 pt-2">
+        <div className="flex-1/12 px-6 w-full bg-white/30 backdrop-blur-lg">
           <MessageInputAndSendButton selectedChat={selectedChat} />
         </div>
       </div>
