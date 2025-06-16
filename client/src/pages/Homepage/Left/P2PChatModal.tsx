@@ -10,10 +10,10 @@ import type { ChatType } from "@/types/chat";
 
 interface PropTypes {
   onClose: () => void;
-  updateChats: () => void;
+  addChat: (chat: ChatType) => void;
 }
 
-function P2PChatModal({ onClose, updateChats }: PropTypes) {
+function P2PChatModal({ onClose, addChat }: PropTypes) {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ function P2PChatModal({ onClose, updateChats }: PropTypes) {
       const chat: ChatType = response.data.chat;
 
       if (chat) {
-        await updateChats();
+        addChat(chat);
         navigate(`/home/chat/${chat._id}`);
       } else {
         toast.error("Error creating chat...");

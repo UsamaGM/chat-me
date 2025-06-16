@@ -6,6 +6,7 @@ type ResponseType = {
 };
 
 type AuthContextType = {
+  authLoaded: boolean;
   isAuthenticated: boolean;
   loading: boolean;
   user: UserType | null;

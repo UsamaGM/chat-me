@@ -16,7 +16,7 @@ function NewChatModal({
     <div
       onMouseEnter={() => setShowChatModal(true)}
       onMouseLeave={() => setShowChatModal(false)}
-      className="absolute bottom-5 right-1 z-10"
+      className="absolute bottom-6 right-6 z-10"
     >
       {/* New Chat Modal */}
       {showChatModal && (

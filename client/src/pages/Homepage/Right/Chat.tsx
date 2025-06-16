@@ -11,7 +11,7 @@ import {
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 import { Loader } from "@/components";
-import { useLoaderData, useOutletContext, useParams } from "react-router-dom";
+import { useLoaderData, useNavigate, useOutletContext } from "react-router-dom";
 import type { Socket } from "socket.io-client";
 import type { ChatType, MessageType, ReactionType } from "@/types/chat";
 import type { UserType } from "@/contexts/AuthContext";
@@ -21,19 +21,26 @@ function Chat() {
   const loaderData = useLoaderData() as {
     data: { queriedChat: MessageType[] };
   };
+  const { selectedChat, socket } = useOutletContext<{
+    selectedChat: ChatType | null;
+    socket: Socket | null;
+  }>();
+  console.log("Selected Chat", selectedChat);
 
+  const [chat, setChat] = useState<ChatType | null>(selectedChat);
   const [typingUsers, setTypingUsers] = useState<UserType[]>([]);
   const [messages, setMessages] = useState(loaderData?.data?.queriedChat || []);
   const [showGroupSettings, setShowGroupSettings] = useState(false);
 
-  const { user, logout } = useAuth();
-  const { id: chatId } = useParams();
-  const { chats, socket, updateChats } = useOutletContext<{
-    chats: ChatType[];
-    socket: Socket | null;
-    updateChats: () => Promise<void>;
-  }>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (selectedChat) {
+      setChat(selectedChat);
+    }
+  }, [selectedChat]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -43,14 +50,13 @@ function Chat() {
     setMessages(loaderData?.data?.queriedChat || []);
   }, [loaderData]);
 
-  const selectedChat = chats.find((c) => c._id === chatId);
   useEffect(() => {
-    if (socket && selectedChat) {
-      socket.emit("join-chat", selectedChat._id);
+    if (socket && chat) {
+      socket.emit("join-chat", chat._id);
 
       const onNewMessage = (newMessage: MessageType) => {
         console.log("New Message", newMessage);
-        if (newMessage.chat._id === selectedChat._id) {
+        if (newMessage.chat._id === chat._id) {
           setMessages((prev) => [...prev, newMessage]);
         }
       };
@@ -62,10 +68,8 @@ function Chat() {
         chatId: string;
         userId: string;
       }) {
-        if (eventChatId === selectedChat?._id && userId !== user?._id) {
-          const typingUserInfo = selectedChat.users.find(
-            (u) => u._id === userId
-          );
+        if (eventChatId === chat?._id && userId !== user?._id) {
+          const typingUserInfo = chat.users.find((u) => u._id === userId);
           if (typingUserInfo) {
             setTypingUsers((prev) => {
               if (prev.find((u) => u._id === typingUserInfo._id)) return prev;
@@ -82,7 +86,7 @@ function Chat() {
         chatId: string;
         userId: string;
       }) => {
-        if (eventChatId === selectedChat._id) {
+        if (eventChatId === chat._id) {
           setTypingUsers((prev) => prev.filter((u) => u._id !== userId));
         }
       };
@@ -109,7 +113,7 @@ function Chat() {
         reactionId?: string;
       }) => {
         console.log("New Message Reaction");
-        if (selectedChat?._id === payload.chatId) {
+        if (chat?._id === payload.chatId) {
           setMessages((prevMessages) =>
             prevMessages.map((msg) => {
               if (msg._id === payload.messageId) {
@@ -133,23 +137,43 @@ function Chat() {
         }
       };
 
+      const onUserAdded = (updatedChat: ChatType) => {
+        if (updatedChat._id === chat._id) {
+          setChat(updatedChat);
+        }
+      };
+
+      const onUserRemoved = (updatedChat: ChatType) => {
+        if (updatedChat._id === chat._id) {
+          if (!updatedChat.users.some((u) => u._id === user?._id)) {
+            navigate("/home");
+          } else {
+            setChat(updatedChat);
+          }
+        }
+      };
+
       socket.on("new message", onNewMessage);
       socket.on("user started typing", onUserTyping);
       socket.on("user stopped typing", onUserStoppedTyping);
       socket.on("message-read-update", onMessageReadUpdate);
       socket.on("messageReaction", onMessageReaction);
+      socket.on("user added", onUserAdded);
+      socket.on("user removed", onUserRemoved);
 
       return () => {
-        socket.emit("leave-chat", selectedChat._id);
+        socket.emit("leave-chat", chat._id);
         socket.off("new message", onNewMessage);
         socket.off("user started typing", onUserTyping);
         socket.off("user stopped typing", onUserStoppedTyping);
         socket.off("messageReaction", onMessageReaction);
+        socket.off("user added", onUserAdded);
+        socket.off("user removed", onUserRemoved);
       };
     }
-  }, [socket, selectedChat, user?._id]);
+  }, [socket, chat, user?._id, navigate, loaderData]);
 
-  if (!selectedChat) {
+  if (!chat) {
     return (
       <div className="flex flex-2/3 items-center justify-center">
         <p>Select a Chat to start conversation!</p>
@@ -157,19 +181,13 @@ function Chat() {
     );
   }
 
-  const otherUser = selectedChat.users.find((u) => u._id !== user?._id);
-  const chatTitle = selectedChat.isGroupChat
-    ? selectedChat.chatName
-    : selectedChat.users.find((u) => u._id !== user?._id)?.name;
-  const chatSubtitle = selectedChat.isGroupChat
-    ? selectedChat.users.reduce(
-        (a, u) => (u._id === user?._id ? a + "You " : a + u.name + " "),
-        ""
-      )
+  const otherUser = chat.users.find((u) => u._id !== user?._id);
+  const chatTitle = chat.isGroupChat ? chat.chatName : otherUser?.name;
+  const chatSubtitle = chat.isGroupChat
+    ? chat.users.map((u) => (u._id === user?._id ? "You" : u.name)).join(", ")
     : otherUser?.email;
-  const chatPic = selectedChat.isGroupChat ? undefined : otherUser?.pic;
-  const isAdmin =
-    selectedChat.isGroupChat && selectedChat.groupAdmin._id === user?._id;
+  const chatPic = chat.isGroupChat ? undefined : otherUser?.pic;
+  const isAdmin = chat.isGroupChat && chat.groupAdmin._id === user?._id;
 
   return (
     <div className="relative flex flex-col flex-2/3 bg-white/30 rounded-3xl overflow-hidden">
@@ -204,7 +222,7 @@ function Chat() {
               <MessageBubble
                 key={message._id}
                 message={message}
-                isGroupChat={selectedChat.isGroupChat}
+                isGroupChat={chat.isGroupChat}
               />
             ))
           ) : (
@@ -220,16 +238,15 @@ function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex-1/12 px-6 w-full bg-white/30 backdrop-blur-lg">
-          <MessageInputAndSendButton selectedChat={selectedChat} />
+        <div className="flex-1/12 px-6 w-full bg-white/20">
+          <MessageInputAndSendButton selectedChat={chat} />
         </div>
       </div>
 
-      {showGroupSettings && selectedChat && (
+      {showGroupSettings && chat && (
         <GroupSettingsModal
-          chat={selectedChat}
+          chat={chat}
           onClose={() => setShowGroupSettings(false)}
-          updateChats={updateChats}
         />
       )}
     </div>

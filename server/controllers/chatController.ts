@@ -152,14 +152,17 @@ async function addToGroup(req: AuthRequest, res: Response) {
       { $push: { users: userId } },
       { new: true }
     )
+      .populate("latestMessage")
+      .populate("latestMessage.sender", "name pic email")
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
     const io: Socket = req.app.get("io");
+    updatedChat?.users.forEach((user) => {
+      io.to(user._id.toString()).emit("user added", updatedChat);
+    });
 
-    io.to(chatId).emit("user-added", updatedChat?.users);
-
-    res.status(200).json({ updatedChat });
+    res.sendStatus(200);
   } catch (error: any) {
     res.status(500).json({ message: "Server Error: Failed to update Chat!" });
     console.log(error.stack?.red.italic);
@@ -167,7 +170,6 @@ async function addToGroup(req: AuthRequest, res: Response) {
 }
 
 async function removeFromGroup(req: AuthRequest, res: Response) {
-  console.log(req.body);
   const { chatId, userId }: { chatId: string; userId: string } = req.body;
 
   try {
@@ -207,17 +209,24 @@ async function removeFromGroup(req: AuthRequest, res: Response) {
       return;
     }
 
-    const udpatedChat = await Chat.findByIdAndUpdate(
+    const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
       {
         $pull: { users: userId },
       },
       { new: true }
     )
+      .populate("latestMessage")
+      .populate("latestMessage.sender", "name pic email")
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
-    res.status(200).json({ udpatedChat });
+    const io: Socket = req.app.get("io");
+    updatedChat?.users.forEach((user) => {
+      io.to(user._id.toString()).emit("user removed", updatedChat);
+    });
+
+    res.sendStatus(200);
   } catch (error: any) {
     res.status(500).json({ message: "Server Error: Failed to update Chat!" });
     console.log(error.stack.red.italic);

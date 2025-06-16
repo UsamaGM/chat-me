@@ -10,10 +10,10 @@ import type { ChatType } from "@/types/chat";
 
 interface PropTypes {
   onClose: () => void;
-  updateChats: () => Promise<void>;
+  addChat: (chat: ChatType) => void;
 }
 
-function CreateGroupChatModal({ onClose, updateChats }: PropTypes) {
+function CreateGroupChatModal({ onClose, addChat }: PropTypes) {
   const [groupName, setGroupName] = useState("");
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<UserType[]>([]);
@@ -61,7 +61,7 @@ function CreateGroupChatModal({ onClose, updateChats }: PropTypes) {
       const groupChat: ChatType = response.data.groupChat;
 
       if (groupChat) {
-        await updateChats();
+        addChat(groupChat);
         navigate(`/home/chat/${groupChat._id}`);
         onClose();
       } else {

@@ -81,7 +81,7 @@ function MessageInputAndSendButton({ selectedChat }: PropTypes) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center justify-between space-x-6 rounded-b-3xl my-4"
+      className="flex items-center justify-between space-x-6 my-4"
     >
       <input
         ref={inputRef}
@@ -90,7 +90,7 @@ function MessageInputAndSendButton({ selectedChat }: PropTypes) {
         value={chatMessage}
         onChange={handleTyping}
         disabled={isSending}
-        className="w-full p-4 bg-white/30 rounded-3xl border border-blue-700/20 focus:outline-none focus:ring focus:ring-blue-700/50 disabled:opacity-75 transition-opacity"
+        className="w-full px-3 py-2 bg-white/30 rounded-3xl border border-blue-700/20 focus:outline-none focus:ring focus:ring-blue-700/50 disabled:opacity-75 transition-opacity"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();

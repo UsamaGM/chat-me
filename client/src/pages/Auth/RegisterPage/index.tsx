@@ -1,7 +1,7 @@
 import { ArrowDownOnSquareIcon } from "@heroicons/react/24/outline";
 import { EnvelopeIcon, UserIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from "react-router-dom";
-import { TextInput, PasswordInput, Loader } from "@/components";
+import { TextInput, PasswordInput } from "@/components";
 import { toast } from "react-toast";
 import { useAuth } from "@hooks/useAuth";
 import { useForm } from "react-hook-form";
@@ -9,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 function RegisterPage() {
-  const { register: registerUser, loading } = useAuth();
+  const { register: registerUser } = useAuth();
   const loginFormSchema = z
     .object({
       name: z.string().min(2, "Name is required"),
@@ -49,11 +49,9 @@ function RegisterPage() {
     if (success) {
       console.log("Registered");
       toast.success(message);
-      setTimeout(() => {
-        toast.hideAll();
-        navigate("/auth/login");
-      }, 2000);
+      navigate("/auth/login");
     } else {
+      console.log("Registering failed");
       toast.error(message);
     }
   }
@@ -99,13 +97,9 @@ function RegisterPage() {
             <div className="flex items-center justify-center bg-gray-800 w-full rounded-2xl my-4 min-w-sm hover:bg-gray-700 transition duration-300 ease-in-out">
               <button
                 type="submit"
-                className="text-gray-100 cursor-pointer w-full h-full focus:outline-none"
+                className="text-gray-100 cursor-pointer w-full h-full focus:outline-none p-3"
               >
-                {loading ? (
-                  <Loader size="small" />
-                ) : (
-                  <div className="p-3">Sign Up</div>
-                )}
+                Sign Up
               </button>
             </div>
           </div>

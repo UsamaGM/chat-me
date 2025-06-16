@@ -3,7 +3,6 @@ import AuthContext from "./AuthContext";
 import errorHandler from "@/config/errorHandler";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toast";
-import { Loader } from "@/components";
 import { type UserType } from "./AuthContext";
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -13,13 +12,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const effectRan = useRef(false);
+  const authLoaded = useRef(false);
 
   useEffect(() => {
-    if (effectRan.current === true) {
+    if (authLoaded.current === true) {
       return;
     }
-    effectRan.current = true;
+    authLoaded.current = true;
 
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -51,8 +50,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  if (loading) return <Loader size="large" />;
-
   async function login(email: string, password: string) {
     try {
       setLoading(true);
@@ -79,10 +76,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setIsAuthenticated(false);
     setUser(null);
-    window.location.href = "http://localhost:5173/";
+    window.location.href = location.origin;
   }
 
-  // The register function does not need changes, but it's here for completeness.
   async function register(
     name: string,
     email: string,
@@ -100,7 +96,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // This function is fine as is.
   async function updateProfile(data: {
     name: string;
     email: string;
@@ -127,6 +122,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
+        authLoaded: authLoaded.current,
         isAuthenticated,
         loading,
         user,

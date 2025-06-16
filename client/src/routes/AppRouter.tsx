@@ -17,7 +17,7 @@ import ForgotPasswordPage from "@/pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/Auth/ResetPasswordPage";
 
 function AppRouter() {
-  const { loading, isAuthenticated } = useAuth();
+  const { authLoaded, isAuthenticated } = useAuth();
 
   const fetchChats = useCallback(async function () {
     try {
@@ -72,7 +72,7 @@ function AppRouter() {
 
   const baseRouter = isAuthenticated ? homeRouter : authRouter;
 
-  if (loading) return null;
+  if (!authLoaded) return null;
   return <RouterProvider router={baseRouter} />;
 }
 

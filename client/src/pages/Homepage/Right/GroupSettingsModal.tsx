@@ -11,14 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 interface GroupSettingsModalProps {
   chat: ChatType;
   onClose: () => void;
-  updateChats: () => Promise<void>;
 }
 
-function GroupSettingsModal({
-  chat,
-  onClose,
-  updateChats,
-}: GroupSettingsModalProps) {
+function GroupSettingsModal({ chat, onClose }: GroupSettingsModalProps) {
   const { user: currentUser } = useAuth();
   const [actionLoading, setActionLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -58,9 +53,9 @@ function GroupSettingsModal({
         chatId: chat._id,
         userId: userToAdd._id,
       });
+
       toast.success(`${userToAdd.name} was added to the group.`);
-      await updateChats();
-      onClose(); // Close modal on success
+      onClose();
     } catch (error) {
       toast.error(errorHandler(error));
     } finally {
@@ -76,8 +71,7 @@ function GroupSettingsModal({
         userId: userToRemove._id,
       });
       toast.warn(`${userToRemove.name} was removed from the group.`);
-      await updateChats();
-      onClose(); // Close modal on success
+      onClose();
     } catch (error) {
       toast.error(errorHandler(error));
     } finally {

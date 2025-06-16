@@ -1,5 +1,5 @@
 import background from "@/assets/background.png";
-import { BellIcon } from "@heroicons/react/24/solid";
+import { UserMinusIcon } from "@heroicons/react/24/solid";
 import ChatList from "./Left/ChatList";
 import CreateGroupChatModal from "./Left/CreateGroupChatModal";
 import NewChatModal from "./Left/NewChatModal";
@@ -103,8 +103,60 @@ function Homepage() {
         );
       };
 
+      const handleUserAdded = (updatedChat: ChatType) => {
+        console.log("User added", updatedChat);
+
+        setChats((prevChats) => {
+          if (!prevChats.some((c) => c._id === updatedChat._id)) {
+            toast.info(
+              "You have been added to a new group chat." + updatedChat.chatName
+            );
+            return [updatedChat, ...prevChats];
+          }
+          toast.info(
+            `User ${
+              updatedChat.users.at(-1)?.name
+            } has been added to the group chat.`
+          );
+          return prevChats.map((chat) =>
+            chat._id === updatedChat._id ? updatedChat : chat
+          );
+        });
+      };
+
+      const handleUserRemoved = (updatedChat: ChatType) => {
+        console.log("User removed", updatedChat);
+        if (!updatedChat.users.some((u) => u._id === user?._id)) {
+          toast.error("You have been removed from the group.");
+          setChats((prevChats) =>
+            prevChats.filter((chat) => chat._id !== updatedChat._id)
+          );
+          if (location.pathname === `/home/chat/${updatedChat._id}`) {
+            navigate("/home");
+            toast.info("You have been removed from the group.");
+          }
+          return;
+        }
+
+        setChats((prevChats) =>
+          prevChats.map((chat) =>
+            chat._id === updatedChat._id
+              ? {
+                  ...chat,
+                  users: chat.users.filter(
+                    (u) => u._id !== updatedChat.users[0]._id
+                  ),
+                }
+              : chat
+          )
+        );
+      };
+
       sock.on("new message", handleNewMessage);
       sock.on("user-status-change", handleUserStatusChange);
+
+      sock.on("user added", handleUserAdded);
+      sock.on("user removed", handleUserRemoved);
 
       sock.on("chat-removed", ({ chatId }: { chatId: string }) => {
         setChats((prevChats) =>
@@ -136,7 +188,9 @@ function Homepage() {
             subtitle={user?.email}
             pic={user?.pic}
             rightIcons={
-              <BellIcon className="w-6 h-6 text-gray-600 hover:animate-ring-bell" />
+              <button className="bg-white/35 p-2 rounded-full" title="Logout">
+                <UserMinusIcon className="w-6 h-6 text-gray-600 hover:animate-ring-bell" />
+              </button>
             }
           />
           <div className="flex flex-col h-full overflow-auto space-y-2 pr-2">
@@ -147,18 +201,25 @@ function Homepage() {
           </div>
         </div>
 
-        <Outlet context={{ chats, socket: socket.current, updateChats }} />
+        <Outlet
+          context={{
+            selectedChat: chats.find(
+              (chat) => chat._id === location.pathname.split("/").at(-1)
+            ),
+            socket: socket.current,
+          }}
+        />
 
         {showChatModal === "p2p" && (
           <P2PChatModal
             onClose={() => setShowChatModal("none")}
-            updateChats={updateChats}
+            addChat={(chat: ChatType) => setChats((prev) => [chat, ...prev])}
           />
         )}
         {showChatModal === "group" && (
           <CreateGroupChatModal
             onClose={() => setShowChatModal("none")}
-            updateChats={updateChats}
+            addChat={(chat: ChatType) => setChats((prev) => [chat, ...prev])}
           />
         )}
       </div>
